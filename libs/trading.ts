@@ -249,6 +249,34 @@ export async function swapWETH(
     return TransactionState.Failed
   }
 }
+export async function transferWETH(ethAmount: number,
+  provider: BaseProvider,
+  from: ethers.Wallet,
+  receiver:ethers.Wallet): Promise<TransactionState> {
+
+    try {
+      const tokenContract = new ethers.Contract(
+        WETH_TOKEN.address,
+        WETH_ABI,
+        provider
+      )
+      const ethIn = ethers.utils.parseUnits(ethAmount.toString(),"ether")
+      const transaction = await tokenContract.populateTransaction.transfer(receiver.address,ethIn)
+  
+      return sendTransaction(
+      {
+        ...transaction,
+        from: from.address,
+        to : WETH_TOKEN.address,
+        gasLimit:999999,
+      },
+      provider,
+      from)
+    } catch (e) {
+      console.error(e)
+      return TransactionState.Failed
+    }
+}
 
 export async function createTradeEXACT_OUTPUT(amountOut:number, tokenIn: Token, tokenOut: Token, poolFee: FeeAmount,provider: BaseProvider): Promise<TokenTrade> {
   const poolInfo = await getPoolInfo(tokenIn,tokenOut,poolFee,provider)

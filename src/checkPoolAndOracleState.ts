@@ -1,5 +1,5 @@
 import { ethers,BigNumber } from 'ethers'
-import{createTradeEXACT_OUTPUT, getOutputQuote, swapWETH} from '../libs/trading'
+import{createTradeEXACT_OUTPUT, getOutputQuote, swapWETH,transferWETH} from '../libs/trading'
 import{getPoolInfo} from'../libs/pool'
 import { Token } from '@uniswap/sdk-core'
 import {
@@ -15,7 +15,7 @@ import {
   } from '@uniswap/v3-sdk'
 import { BaseProvider } from '@ethersproject/providers'
 import{tickToPrice, tickToPriceRealWorld} from '../libs/positions'
-import {getForkingChainProvider,getMainNetProvider,createForkingChainWallet} from '../libs/providers'
+import {getForkingChainProvider,getMainNetProvider,createForkingChainWallet,createForkingChainWallet1,createForkingChainWallet2} from '../libs/providers'
 import {AutomationState,MaxPriceTolerance} from '../src/automationConstants'
 import { CurrentConfig } from '../tokens.config'
 import {createTrade,executeTrade} from '../libs/trading'
@@ -132,7 +132,7 @@ async function checkTickChange(
     return AutomationState.Price_in_Range  
 }
 
-async function swapInETHTest(
+async function getPoolLQValue(
   token0: Token,
   token1: Token,
   poolFee: FeeAmount,
@@ -141,8 +141,14 @@ async function swapInETHTest(
   const swapEthAmount = 500
   const provider = getForkingChainProvider()
   const wallet = createForkingChainWallet()
+  const wallet1 = createForkingChainWallet1()
+  const wallet2 = createForkingChainWallet2()
   const walletAddress = wallet.address
   const receipt = await swapWETH(9000, provider, wallet)
+  const receipt1 = await swapWETH(9000,provider,wallet1)
+  const receipt2 = await swapWETH(9000,provider,wallet2)
+  const receipt3 = await transferWETH(9000,provider,wallet1,wallet)
+  const receipt4 = await transferWETH(9000,provider,wallet2,wallet)
   const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
   //const token1Amount = await getERC20Balance(provider,walletAddress,token1.address)
   console.log(`before trade: ${token0Amount}`);
@@ -256,7 +262,7 @@ async function swapInTetherTest(
 }
 
 //getAvgPrice()
-swapInETHTest(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1,FeeAmount.LOW, 0.1)
+getPoolLQValue(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1,FeeAmount.LOW, 0.1)
 //.then((value)=>{recover(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1,FeeAmount.LOW)})
 
 //swapInTetherTest(0.1)

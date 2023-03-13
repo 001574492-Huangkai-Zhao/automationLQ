@@ -16,7 +16,7 @@ import {
   } from '@uniswap/v3-sdk'
 import { DAI_TOKEN } from '../libs/constants'
 import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
-import { rebalanceTokens,constructRebalancing} from './tokenRebalancing'
+import { rebalanceTokens,constructRebalancing} from '../src/tokenRebalancing'
 
 export async function addLQTest(positionRange: number) {
     const provider= getForkingChainProvider()
@@ -93,6 +93,6 @@ export async function redeemTest() {
   console.log(`after remove liquidity: ${token1Amount_LQ}`);
 }
 
-//addLQTest(0.15)
-//checkApprovalTest()
-//redeemTest()
+addLQTest(0.15)
+.then((value)=>{checkApprovalTest()})
+.then((value)=>{redeemTest()})

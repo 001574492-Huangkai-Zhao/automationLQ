@@ -11,5 +11,9 @@
   },
   "scripts": {
     "start:chain": "anvil --chain-id 1 --fork-url"
+  },
+  "dependencies": {
+    "@ethersproject/providers": "^5.7.2",
+    "cross-fetch": "^3.1.5"
   }
 }
