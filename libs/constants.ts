@@ -82,6 +82,7 @@ export const WETH_ABI = [
  /// @dev `msg.value` of ETH sent to this contract grants caller account a matching increase in WETH10 token balance.
     /// Emits {Transfer} event to reflect WETH10 token mint of `msg.value` from `address(0)` to caller account.
     'function deposit() external payable',
+    'function transfer(address to, uint256 value) external returns (bool)',
 
   /// @dev Burn `value` WETH10 token from caller account and withdraw matching ETH to the same.
   /// Emits {Transfer} event to reflect WETH10 token burn of `value` to `address(0)` from caller account. 
