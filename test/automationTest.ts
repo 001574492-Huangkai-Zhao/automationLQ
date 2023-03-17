@@ -17,13 +17,12 @@ import {
 import { DAI_TOKEN } from '../libs/constants'
 import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens,constructRebalancing} from '../src/tokenRebalancing'
-import {AutoRedeem} from '../src/automation'
+import {AutoRedeemCV} from '../src/automation'
 
 
 async function AutoRedeemTest() {
-    const addLQres15 = await constructPosition(0.15)
-    const addLQres5 = await constructPosition(0.05)
-    const addLQres2 = await constructPosition(0.02)
+    const addLQresCV = await constructPosition(0.15)
+    const addLQresAG = await constructPosition(0.05)
     const provider= getForkingChainProvider()
     const wallet = createForkingChainWallet()
     const token0 = CurrentConfig.tokensETHTether.token0
@@ -35,13 +34,13 @@ async function AutoRedeemTest() {
     console.log(`WETH balance: ${token0Amount}`);
     const uncheckedTrade = await createTrade(2500, token0, token1, FeeAmount.LOW, provider)
     const redeem1 = await executeTrade(uncheckedTrade, token0, provider, wallet)
-      .then((value)=>{AutoRedeem()})
+      .then((value)=>{AutoRedeemCV(provider,wallet,addLQresCV)})
     const uncheckedTrade2 = await createTrade(5000, token0, token1, FeeAmount.LOW, provider)
     const redeem2 = await executeTrade(uncheckedTrade2, token0, provider, wallet)
-      .then((value)=>{AutoRedeem()})
+      .then((value)=>{AutoRedeemCV(provider,wallet,addLQresAG)})
   }
 
-  export async function constructPosition(positionRange: number) {
+  export async function constructPosition(positionRange: number) :Promise<number>{
     const provider= getForkingChainProvider()
     const wallet = createForkingChainWallet()
     const token0 = CurrentConfig.tokensETHTether.token0
@@ -56,6 +55,7 @@ async function AutoRedeemTest() {
     const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
+    return positinID
 }
   
-  AutoRedeemTest()
+AutoRedeemTest()
