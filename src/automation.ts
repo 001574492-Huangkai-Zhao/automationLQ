@@ -21,12 +21,13 @@ import {AutomationState,PositionType,} from './automationConstants'
 import { BaseProvider } from '@ethersproject/providers'
 import { ethers,BigNumber} from 'ethers'
 import{readEnv,writeEnv,AutomationInfo} from './RWAutomationState'
-let currentAutomationInfo: AutomationInfo  = readEnv()
+
 
 export async function AutoRedeemCV(
   provider: BaseProvider,
   wallet: ethers.Wallet,
-  positionID: number): Promise<TransactionState>{
+  positionID: number){
+  let currentAutomationInfo = await readEnv()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
   const poolFee = FeeAmount.LOW
@@ -66,25 +67,69 @@ export async function AutoRedeemCV(
   const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
   console.log(`after redeem: ${token0Amount_LQ}`);
   console.log(`after redeem: ${token1Amount_LQ}`);
-  return redeemRes
+  await writeEnv(currentAutomationInfo)
 }
 
 export async function AutoDepositCV(
-  positionType : PositionType,
   provider: BaseProvider,
   wallet: ethers.Wallet){
+    let currentAutomationInfo = await readEnv()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
+    
+    await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
     console.log(`minted positio ID: ${positinID}`);
     console.log()
+    if(positinID==-1||positinID==1){
+      currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Automation_Paused_RevertedTX
+      return
+    }
+
+    const positionInfo = await getPositionInfo(positinID,provider)
+    currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV = positionInfo.tickLower
+    currentAutomationInfo.CURRENT_LQ_RANGE_UPPER_CV = positionInfo.tickUpper
+    currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = positionInfo.liquidity.toNumber()
+    currentAutomationInfo.CONSERVATIVE_POSITION_ID = positinID
+    currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Price_In_Range
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
     const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
-    return positinID
+    await writeEnv(currentAutomationInfo)
+}
+
+
+
+export async function AutoDepositAG(
+  provider: BaseProvider,
+  wallet: ethers.Wallet){
+    let currentAutomationInfo = await readEnv()
+    const token0 = CurrentConfig.tokensETHTether.token0
+    const token1 = CurrentConfig.tokensETHTether.token1
+    const poolFee = FeeAmount.LOW
+    
+    await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_AG)
+    const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+    console.log(`minted positio ID: ${positinID}`);
+    console.log()
+    if(positinID==-1||positinID==1){
+      currentAutomationInfo.CURRENT_AUTOMATION_STATE_AG = AutomationState.Automation_Paused_RevertedTX
+      return
+    }
+
+    const positionInfo = await getPositionInfo(positinID,provider)
+    currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_AG = positionInfo.tickLower
+    currentAutomationInfo.CURRENT_LQ_RANGE_UPPER_AG = positionInfo.tickUpper
+    currentAutomationInfo.CURRENT_LQ_AMOUNT_AG = positionInfo.liquidity.toNumber()
+    currentAutomationInfo.AGGRESSIVE_POSITION_ID = positinID
+    currentAutomationInfo.CURRENT_AUTOMATION_STATE_AG = AutomationState.Price_In_Range
+    const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
+    const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
+    await writeEnv(currentAutomationInfo)
+    //console.log(`after adding liquidity: ${token0Amount_LQ}`);
+    //console.log(`after adding liquidity: ${token1Amount_LQ}`);
 }
 
 export async function AutoDepositInitial(
@@ -104,5 +149,4 @@ export async function AutoDepositInitial(
     const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
-    return positinID
 }
