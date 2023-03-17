@@ -126,10 +126,10 @@ async function checkTickChange(
     ): Promise<AutomationState>{
     const poolInfo = await getPoolInfo(token0Info,token1Info,poolFee,provider)
     if(poolInfo.tick<positionTickLower)
-        return AutomationState.Price_hit_TickLower
+        return AutomationState.Price_Hit_TickLower
     else if(poolInfo.tick>positionTickUpper)
-        return AutomationState.Price_hit_TickUpper
-    return AutomationState.Price_in_Range  
+        return AutomationState.Price_Hit_TickUpper
+    return AutomationState.Price_In_Range  
 }
 
 async function getPoolLQValue(
