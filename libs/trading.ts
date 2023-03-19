@@ -120,7 +120,7 @@ export async function executeTrade(
   }
 
   const res = await sendTransaction(tx, provider, wallet)
-
+  
   return res
 }
 
@@ -240,7 +240,6 @@ export async function swapWETH(
       from: address,
       to : WETH_TOKEN.address,
       value: ethIn,
-      gasLimit:999999,
     },
     provider,
     wallet)

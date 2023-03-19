@@ -53,19 +53,24 @@ export async function sendTransaction(
   provider: BaseProvider,
   wallet: ethers.Wallet
 ): Promise<TransactionState> {
+  //web3.eth.getBlock("pending").then((block) => console.log(block.baseFeePerGas));
   if (transaction.value) {
     transaction.value = BigNumber.from(transaction.value)
   }
   const txRes = await wallet.sendTransaction(transaction)
-  //console.log(transaction)
+  console.log(`sending tx with nonce: ${txRes.nonce}`)
+  //console.log(`maxPriorityFeePerGas: ${txRes.maxPriorityFeePerGas}`)
+  //console.log(`maxFeePerGas: ${txRes.maxFeePerGas}`)
+  console.log(`gasLimit: ${txRes.gasLimit}`)
   let receipt
   if (!provider) {
     return TransactionState.Failed
   }
+
   while (receipt === undefined || receipt === null) {
     try {
       receipt = await provider.getTransactionReceipt(txRes.hash)
-      
+      //console.log(receipt)
     } catch (e) {
       console.log(`Receipt error:`, e)
       break
@@ -74,8 +79,15 @@ export async function sendTransaction(
   
   // Transaction was successful if status === 1
   if (receipt) {
-    //console.log(`!!!!!!!!!!!!getting receipt at: ${receipt.blockNumber}`);
-    return TransactionState.Sent
+    if(receipt.status==0) {
+      console.log('!!!!!!!!!!!!!!!!transaction failed')
+      return TransactionState.Failed
+    } else{
+      console.log('transaction succeed!!!!!!!!!!!!!!!')
+      console.log(`gasUsed: ${receipt.gasUsed}`)
+      console.log(`effectiveGasPrice: ${receipt.effectiveGasPrice}`)
+      return TransactionState.Sent
+    }
   } else {
     console.log(`no receipt yet, tx hash is: ${txRes.hash}`);
     return TransactionState.Failed
