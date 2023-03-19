@@ -93,6 +93,6 @@ export async function redeemTest() {
   console.log(`after remove liquidity: ${token1Amount_LQ}`);
 }
 
-//addLQTest(0.15)
+addLQTest(0.15)
 //checkApprovalTest()
 //redeemTest()
