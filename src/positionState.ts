@@ -94,6 +94,6 @@ async function queryLockBalance() {
   console.log(`token1Balance: ${token1Balance.toFixed(0)}`)
 }
 //queryPositionstate()
-//queryCurrentTickstate()
+queryCurrentTickstate()
 //queryTickstate(-201810)
-queryLockBalance()
+//queryLockBalance()

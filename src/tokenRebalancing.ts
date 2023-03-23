@@ -75,22 +75,57 @@ export async function constructRebalancing( amount0: number,decimal0:number, amo
   console.log(`tickLower: ${tickLower}`);
   console.log(`tickUpper: ${tickUpper}`);
   
-  const swap0for1 = amount0 * poolPrice - amount1 > 0;
+  let swap0for1
   const constant = (1/sqrtprice - 1/sqrtPriceUpper)/(sqrtprice - sqrtPriceLower);
   let swapAmount
-
-  if(swap0for1) {
-    const swap0 = (amount0 - amount1*constant)/(1+constant*poolPrice*(1-FeeAmount.LOW/100000));
+  const swap0 = (amount0 - amount1*constant)/(1+constant*poolPrice*(1-FeeAmount.LOW/100000));
+  if(swap0) {
+    swap0for1=true
     swapAmount = swap0*Math.pow(10, -decimal0);
     console.log(`going to swap in WETH amount: ${swapAmount}`);
-    //return swap(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1, swapAmount)
-  } else{
+  } else {
+    swap0for1=false
     const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     swapAmount = swap1*Math.pow(10, -decimal1);
     console.log(`going to swap in TETHER amount: ${swapAmount}`);
-    //return swap(CurrentConfig.tokensETHTether.token1, CurrentConfig.tokensETHTether.token0, swapAmount)
   }
  return{swap0for1,swapAmount}
+}
+
+export async function constructRebalancingAsymmetry( amount0: number,decimal0:number, amount1: number,decimal1:number, leftRange: number, rightRange: number, poolInfo:PoolInfo): Promise<tokenBalancingInfo>  {
+  
+  const poolTick = poolInfo.tick
+  const poolPrice = tickToPrice(poolTick);
+  const sqrtprice = Math.pow(poolPrice, 0.5);
+  console.log(`pool price: ${poolPrice}`);
+  const sqrtPriceUpperTemp = sqrtprice * Math.pow((1+rightRange), 0.5);
+  const sqrtPriceLowerTemp = sqrtprice * Math.pow((1-leftRange), 0.5);
+  const tickUpper = sqrtPriceToTick(sqrtPriceUpperTemp);
+  const tickLower = sqrtPriceToTick(sqrtPriceLowerTemp);
+  const sqrtPriceUpper = tickToSqrtPrice(tickUpper)
+  const sqrtPriceLower = tickToSqrtPrice(tickLower)
+  //console.log(`sqrtPriceUpper: ${sqrtPriceUpper}`);
+  //console.log(`sqrtPriceLower: ${sqrtPriceLower}`);
+  //console.log(`sqrtPriceUpperTemp: ${sqrtPriceUpperTemp}`);
+  //console.log(`sqrtPriceLowerTemp: ${sqrtPriceLowerTemp}`);
+  console.log(`tickLower: ${tickLower}`);
+  console.log(`tickUpper: ${tickUpper}`);
+  
+  let swap0for1
+  const constant = (1/sqrtprice - 1/sqrtPriceUpper)/(sqrtprice - sqrtPriceLower);
+  let swapAmount
+  const swap0 = (amount0 - amount1*constant)/(1+constant*poolPrice*(1-FeeAmount.LOW/100000));
+  if(swap0) {
+    swap0for1=true
+    swapAmount = swap0*Math.pow(10, -decimal0);
+    console.log(`going to swap in WETH amount: ${swapAmount}`);
+  } else {
+    swap0for1=false
+    const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
+    swapAmount = swap1*Math.pow(10, -decimal1);
+    console.log(`going to swap in TETHER amount: ${swapAmount}`);
+  }
+ return{swap0for1, swapAmount}
 }
 
 async function rebalancing(token0: Token, token1: Token, swapAmount: number,provider: BaseProvider,wallet: ethers.Wallet) : Promise<TransactionState>{
@@ -104,4 +139,3 @@ async function rebalancing(token0: Token, token1: Token, swapAmount: number,prov
     return TransactionState.Failed
   }
 }
-

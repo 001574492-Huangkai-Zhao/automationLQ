@@ -58,10 +58,10 @@ export async function sendTransaction(
     transaction.value = BigNumber.from(transaction.value)
   }
   const txRes = await wallet.sendTransaction(transaction)
-  console.log(`sending tx with nonce: ${txRes.nonce}`)
+  //console.log(`sending tx with nonce: ${txRes.nonce}`)
   //console.log(`maxPriorityFeePerGas: ${txRes.maxPriorityFeePerGas}`)
   //console.log(`maxFeePerGas: ${txRes.maxFeePerGas}`)
-  console.log(`gasLimit: ${txRes.gasLimit}`)
+  //console.log(`gasLimit: ${txRes.gasLimit}`)
   let receipt
   if (!provider) {
     return TransactionState.Failed
@@ -83,9 +83,9 @@ export async function sendTransaction(
       console.log('!!!!!!!!!!!!!!!!transaction failed')
       return TransactionState.Failed
     } else{
-      console.log('transaction succeed!!!!!!!!!!!!!!!')
-      console.log(`gasUsed: ${receipt.gasUsed}`)
-      console.log(`effectiveGasPrice: ${receipt.effectiveGasPrice}`)
+      //console.log('transaction succeed!!!!!!!!!!!!!!!')
+      //console.log(`gasUsed: ${receipt.gasUsed}`)
+      //console.log(`effectiveGasPrice: ${receipt.effectiveGasPrice}`)
       return TransactionState.Sent
     }
   } else {
