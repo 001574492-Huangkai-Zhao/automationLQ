@@ -1,32 +1,21 @@
 import{getERC20Balance} from '../libs/balance'
 import{getPoolInfo} from '../libs/pool'
-import{createTrade,executeTrade, swapWETH,checkTokenTransferApproval} from '../libs/trading'
-import { Token } from '@uniswap/sdk-core'
+import{swapWETH} from '../libs/trading'
 import { CurrentConfig } from '../tokens.config'
 import {
-    getForkingChainProvider,
-    getWalletAddress,
-    sendTransaction,
     TransactionState,
-    createMainNetWallet,
-    createForkingChainWallet,
   } from '../libs/providers'
   import {
     FeeAmount,
   } from '@uniswap/v3-sdk'
-import { DAI_TOKEN } from '../libs/constants'
-import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
-import { rebalanceTokens,constructRebalancing} from './tokenRebalancing'
-import {AutomationState,PositionType,} from './automationConstants'
+import {mintPosition,getPositionInfo,removeLiquidity} from '../libs/positions'
+import { rebalanceTokens} from './tokenRebalancing'
+import {AutomationState,} from './automationConstants'
 import { BaseProvider } from '@ethersproject/providers'
-import { ethers,BigNumber} from 'ethers'
-import{readEnv,writeEnv,AutomationInfo} from './RWAutomationState'
+import { ethers} from 'ethers'
+import{readEnv,writeEnv} from './RWAutomationState'
 
-
-export async function AutoRedeemCV(
-  provider: BaseProvider,
-  wallet: ethers.Wallet,
-  positionID: number){
+export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet,positionID: number){
   let currentAutomationInfo = await readEnv()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
@@ -70,16 +59,14 @@ export async function AutoRedeemCV(
   await writeEnv(currentAutomationInfo)
 }
 
-export async function AutoDepositCV(
-  provider: BaseProvider,
-  wallet: ethers.Wallet){
+export async function AutoDepositCV(positionRange:number, provider: BaseProvider,wallet: ethers.Wallet){
     let currentAutomationInfo = await readEnv()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV)
-    const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+    const positinID = await mintPosition(token0,token1, poolFee, positionRange, provider,wallet);
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     if(positinID==-1||positinID==1){
@@ -102,9 +89,7 @@ export async function AutoDepositCV(
 
 
 
-export async function AutoDepositAG(
-  provider: BaseProvider,
-  wallet: ethers.Wallet){
+export async function AutoDepositAG(positionRange:number, provider: BaseProvider, wallet: ethers.Wallet){
     let currentAutomationInfo = await readEnv()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
@@ -131,18 +116,14 @@ export async function AutoDepositAG(
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
 }
-
-export async function AutoDepositInitial(
-  provider: BaseProvider,
-  walletCV: ethers.Wallet,
-  walletAG: ethers.Wallet,
-){
+/*
+export async function AutoDepositInitial(provider: BaseProvider, walletCV: ethers.Wallet, walletAG: ethers.Wallet){
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
-    const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+    const positinID = await mintPosition(token0,token1, poolFee, positionRange, provider, wallet);
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
@@ -150,3 +131,4 @@ export async function AutoDepositInitial(
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
 }
+*/

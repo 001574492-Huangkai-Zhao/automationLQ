@@ -1,19 +1,12 @@
-import{getERC20Balance} from '../libs/balance'
 import{getPoolBalance, getPoolInfo, getTickInfo} from '../libs/pool'
 import { CurrentConfig } from '../tokens.config'
-import {
-    getForkingChainProvider,
-    createForkingChainWallet
-  } from '../libs/providers'
-  import {
-    FeeAmount,
-  } from '@uniswap/v3-sdk'
-import {getPositionIds,getPositionInfo,removeLiquidity, tickToPriceRealWorld} from '../libs/positions'
+import {getForkingChainProvider,createForkingChainWallet} from '../libs/providers'
+import {FeeAmount,} from '@uniswap/v3-sdk'
+import {tickToPriceRealWorld} from '../libs/positions'
 import { ethers } from 'ethers'
 
-async function queryPositionstate() {
+async function queryPoolState() {
     const provider= getForkingChainProvider()
-    const wallet = createForkingChainWallet()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
@@ -57,7 +50,6 @@ async function queryTickstate(tick:number) {
 
 async function queryCurrentTickstate() {
   const provider= getForkingChainProvider()
-  const wallet = createForkingChainWallet()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
   const poolFee = FeeAmount.LOW
@@ -98,7 +90,7 @@ async function queryLockBalance() {
   console.log(`token0Balance: ${token0Balance.toFixed(0)}`)
   console.log(`token1Balance: ${token1Balance.toFixed(0)}`)
 }
-//queryPositionstate()
-//queryCurrentTickstate()
-queryTickstate(-201300)
+//queryPoolState()
+queryCurrentTickstate()
+//queryTickstate(-201300)
 //queryLockBalance()

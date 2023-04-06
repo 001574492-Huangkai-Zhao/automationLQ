@@ -1,32 +1,15 @@
 
-import { ethers,BigNumber } from 'ethers'
-import{createTradeEXACT_OUTPUT, getOutputQuote, swapWETH} from '../libs/trading'
+import{swapWETH} from '../libs/trading'
 import{getPoolInfo} from'../libs/pool'
 import { Token } from '@uniswap/sdk-core'
-import {
-    computePoolAddress,
-    FeeAmount,
-    Pool,
-    Route,
-    SwapOptions,
-    SwapQuoter,
-    SwapRouter,
-    toHex,
-    Trade,
-  } from '@uniswap/v3-sdk'
-import { BaseProvider } from '@ethersproject/providers'
-import{tickToPrice, tickToPriceRealWorld} from '../libs/positions'
-import {getForkingChainProvider,getMainNetProvider,createForkingChainWallet, TransactionState} from '../libs/providers'
-import {AutomationState,MaxPriceTolerance} from '../src/automationConstants'
+import {FeeAmount,} from '@uniswap/v3-sdk'
+import{tickToPriceRealWorld} from '../libs/positions'
+import {getForkingChainProvider,createForkingChainWallet, TransactionState} from '../libs/providers'
 import { CurrentConfig } from '../tokens.config'
 import {createTrade,executeTrade} from '../libs/trading'
 import { getERC20Balance } from '../libs/balance'
 
-async function swapInETHTest(
-    token0: Token,
-    token1: Token,
-    poolFee: FeeAmount,
-    range: number
+async function swapInETHTest(token0: Token, token1: Token,poolFee: FeeAmount,range: number
 ){
     const swapEthAmount = 5000
     const provider = getForkingChainProvider()

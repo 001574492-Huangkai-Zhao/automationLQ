@@ -157,7 +157,23 @@ async function getAvgPrice(){
   const avg = (+coinbaseP + +uniswapP)/2
   console.log(`average price of coinbase and uniswap pools: ${avg}`)
 }
-
+/*
+async function checkTickChange(
+    token0Info: Token,
+    token1Info: Token,
+    poolFee: FeeAmount,
+    provider:BaseProvider,
+    positionTickLower:number,
+    positionTickUpper:number
+    ): Promise<AutomationState>{
+    const poolInfo = await getPoolInfo(token0Info,token1Info,poolFee,provider)
+    if(poolInfo.tick<positionTickLower)
+        return AutomationState.Price_hit_TickLower
+    else if(poolInfo.tick>positionTickUpper)
+        return AutomationState.Price_hit_TickUpper
+    return AutomationState.Price_in_Range  
+}
+*/
 
 getAvgPrice()
 
