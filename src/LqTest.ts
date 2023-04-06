@@ -10,6 +10,7 @@ import {
   } from '@uniswap/v3-sdk'
 import {getPositionIds,getPositionInfo,removeLiquidity, tickToPriceRealWorld} from '../libs/positions'
 import { ethers } from 'ethers'
+import { arrayToCsv } from './writeCSV'
 
 async function queryTickLQ(tickLeft:number, tickRight:number) {
     const provider= getForkingChainProvider()
@@ -20,6 +21,7 @@ async function queryTickLQ(tickLeft:number, tickRight:number) {
     const tick_accurate = poolInfo.tick
     const remainder = tick_accurate % 10;
     let tick = tick_accurate-remainder
+    let dataToCSV = []
     if(remainder < 0 && tick_accurate < 0) {
         tick = tick-10;
     }
@@ -27,7 +29,8 @@ async function queryTickLQ(tickLeft:number, tickRight:number) {
     const price = tickToPriceRealWorld(tick, CurrentConfig.tokensETHTether.token0,CurrentConfig.tokensETHTether.token1)
     //console.log(`current tick: ${tick_accurate}`)
     //console.log(`liquidity of current tick: ${liquidity}`)
-    console.log(`${price.toFixed(0)}: liquidityCross: ${liquidity}`)
+    dataToCSV.push([price.toFixed(0), liquidity.toString()]);
+    //console.log(`${price.toFixed(0)}, ${liquidity}`)
     for(let i = 0; tick + 10 < tickRight; i++) {
         tick = tick + 10
         const tickInfo = await getTickInfo(tick, token0,token1, poolFee,provider)
@@ -37,7 +40,8 @@ async function queryTickLQ(tickLeft:number, tickRight:number) {
         const price = tickToPriceRealWorld(tick, CurrentConfig.tokensETHTether.token0,CurrentConfig.tokensETHTether.token1)
         const liquidityCross = liquidity.add(tickInfo.liquidityNet)
         liquidity = liquidityCross
-        console.log(`${price.toFixed(0)}: liquidityCross: ${liquidityCross}`)
+        //console.log(`${price.toFixed(0)}, ${liquidityCross}`)
+        dataToCSV.push([price.toFixed(0), liquidityCross.toString()]);
     }
     tick = tick_accurate-remainder
     if(remainder < 0 && tick_accurate < 0) {
@@ -53,8 +57,10 @@ async function queryTickLQ(tickLeft:number, tickRight:number) {
         //console.log(`liquidityNet: ${tickInfo.liquidityNet}`)
         const liquidityCross = liquidity.sub(tickInfo.liquidityNet)
         liquidity = liquidityCross
-        console.log(`${price.toFixed(0)}: liquidityCross: ${liquidityCross}`)
+        //console.log(`${price.toFixed(0)}, ${liquidityCross}`)
+        dataToCSV.push([price.toFixed(0), liquidityCross.toString()]);
     }
+    arrayToCsv(dataToCSV)
 }
 async function queryTickLQWithRange(change:number) {
     const provider = getForkingChainProvider()
@@ -70,4 +76,4 @@ async function queryTickLQWithRange(change:number) {
 }
 
 //queryTickLQ(-202199,-201199)
-queryTickLQWithRange(0.2)
+queryTickLQWithRange(0.01)

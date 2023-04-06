@@ -10,6 +10,7 @@ import {AutomationState} from '../src/automationConstants'
 import { CurrentConfig } from '../tokens.config'
 import fetch from 'cross-fetch'
 const LQRatio = 0.01
+import moment from 'moment';
 /*
 export async function checkPoolAndOracleState(): Promise<AutomationState>{
   const maxTolerance = 0.05
@@ -144,28 +145,19 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   return avgPrice
 }
 async function getAvgPrice(){
-  const time = Date.now()
-  console.log(`at timestamp: ${time}`)
+  //const time = Date.now()
+  let time = new Date()
+  //time.toISOString().slice(0, 10);
+  var dateString = moment(time).format('YYYY_MM_DD');
+  var dateStringWithTime = moment(time).format('YYYY_MM_DD HH:mm:ss');
+  console.log(`at timestamp: ${dateString}`)
+  console.log(`at timestamp: ${dateStringWithTime}`)
   const coinbaseP = await getCoinBasePrice()
   const uniswapP = await getUniswapV3AndV2Price()
   const avg = (+coinbaseP + +uniswapP)/2
   console.log(`average price of coinbase and uniswap pools: ${avg}`)
 }
-async function checkTickChange(
-    token0Info: Token,
-    token1Info: Token,
-    poolFee: FeeAmount,
-    provider:BaseProvider,
-    positionTickLower:number,
-    positionTickUpper:number
-    ): Promise<AutomationState>{
-    const poolInfo = await getPoolInfo(token0Info,token1Info,poolFee,provider)
-    if(poolInfo.tick<positionTickLower)
-        return AutomationState.Price_hit_TickLower
-    else if(poolInfo.tick>positionTickUpper)
-        return AutomationState.Price_hit_TickUpper
-    return AutomationState.Price_in_Range  
-}
+
 
 getAvgPrice()
 
