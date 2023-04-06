@@ -1,22 +1,10 @@
 import{getERC20Balance} from '../libs/balance'
-import{getPoolInfo} from '../libs/pool'
-import{createTrade,executeTrade, swapWETH,checkTokenTransferApproval} from '../libs/trading'
-import { Token } from '@uniswap/sdk-core'
+import{createTrade,executeTrade, swapWETH} from '../libs/trading'
 import { CurrentConfig } from '../tokens.config'
-import {
-    getForkingChainProvider,
-    getWalletAddress,
-    sendTransaction,
-    TransactionState,
-    createMainNetWallet,
-    createForkingChainWallet
-  } from '../libs/providers'
-  import {
-    FeeAmount,
-  } from '@uniswap/v3-sdk'
-import { DAI_TOKEN } from '../libs/constants'
-import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
-import { rebalanceTokens,constructRebalancing} from '../src/tokenRebalancing'
+import {getForkingChainProvider,createForkingChainWallet} from '../libs/providers'
+import {FeeAmount,} from '@uniswap/v3-sdk'
+import {mintPosition} from '../libs/positions'
+import { rebalanceTokens} from '../src/tokenRebalancing'
 import {AutoRedeemCV} from '../src/automation'
 
 
@@ -46,7 +34,7 @@ async function AutoRedeemTest() {
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
-    const receipt = await swapWETH(100, provider,wallet)
+    const receipt = await swapWETH(10, provider,wallet)
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
     console.log(`minted positio ID: ${positinID}`);

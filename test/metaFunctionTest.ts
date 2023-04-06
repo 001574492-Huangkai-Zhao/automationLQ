@@ -1,22 +1,11 @@
 import{getERC20Balance} from '../libs/balance'
 import{getPoolInfo} from '../libs/pool'
-import{createTrade,executeTrade, swapWETH,checkTokenTransferApproval} from '../libs/trading'
-import { Token } from '@uniswap/sdk-core'
+import{swapWETH,checkTokenTransferApproval} from '../libs/trading'
 import { CurrentConfig } from '../tokens.config'
-import {
-    getForkingChainProvider,
-    getWalletAddress,
-    sendTransaction,
-    TransactionState,
-    createMainNetWallet,
-    createForkingChainWallet
-  } from '../libs/providers'
-  import {
-    FeeAmount,
-  } from '@uniswap/v3-sdk'
-import { DAI_TOKEN } from '../libs/constants'
+import {getForkingChainProvider,createForkingChainWallet} from '../libs/providers'
+import {FeeAmount,} from '@uniswap/v3-sdk'
 import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
-import { rebalanceTokens,constructRebalancing} from '../src/tokenRebalancing'
+import { rebalanceTokens} from '../src/tokenRebalancing'
 
 export async function addLQTest(positionRange: number) {
     const provider= getForkingChainProvider()

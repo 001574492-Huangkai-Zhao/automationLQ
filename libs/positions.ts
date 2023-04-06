@@ -54,13 +54,7 @@ export function sqrtPriceToTick(sqrtPrice: number):number {
   const remainder = tick % 10;
   return tick-remainder
 }
-export async function mintPosition(
-  token0: Token,
-  token1: Token,
-  poolFee: FeeAmount,
-  range:number,
-  provider: BaseProvider,
-  wallet: ethers.Wallet): Promise<number> {
+export async function mintPosition(token0: Token,token1: Token,poolFee: FeeAmount,range:number,provider: BaseProvider,wallet: ethers.Wallet): Promise<number> {
   const address = wallet.address
   if (!address || !provider) {
     return -1

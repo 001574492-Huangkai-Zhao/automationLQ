@@ -1,12 +1,14 @@
 import { stringify } from 'csv-stringify';
 import fs from 'fs'
 import moment from 'moment';
+
 export function arrayToCsv(data: object[]){
     const time = new Date()
     const dateString = moment(time).format('YYYY_MM_DD');
-    let outputFileName = "out/" +dateString
+    let outputFileName = "out/" + dateString
     console.log(outputFileName)
     let columns = {
+        tick: 'tick',
         price: 'price',
         LQ: 'liquidity'
     };

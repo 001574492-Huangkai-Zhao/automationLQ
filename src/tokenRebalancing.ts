@@ -1,20 +1,13 @@
-import { BigNumber, ethers } from 'ethers'
+import { ethers } from 'ethers'
 import{getERC20Balance} from '../libs/balance'
 import{getPoolInfo} from '../libs/pool'
 import{createTrade,executeTrade} from '../libs/trading'
 import { Token } from '@uniswap/sdk-core'
-import { CurrentConfig } from '../tokens.config'
-import {
-    TransactionState,
-  } from '../libs/providers'
-  import {
-    FeeAmount
-  } from '@uniswap/v3-sdk'
-import { DAI_TOKEN } from '../libs/constants'
-import {mintPosition, sqrtPriceToTick, tickToSqrtPrice, tickToPrice} from '../libs/positions'
+import {TransactionState,} from '../libs/providers'
+import {FeeAmount} from '@uniswap/v3-sdk'
+import {sqrtPriceToTick, tickToSqrtPrice, tickToPrice} from '../libs/positions'
 import { BaseProvider } from '@ethersproject/providers'
 import {PoolInfo} from '../libs/pool'
-
 
 export interface tokenBalancingInfo {
   swap0for1: boolean,
