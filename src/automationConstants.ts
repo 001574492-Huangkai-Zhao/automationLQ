@@ -3,7 +3,7 @@ export const AggressiveAssetRatio = 0.5
 export const AsymmetryRatio = 0.01
 export const LQStartRange = 0.1
 export const FeeCollectionThreshold = 1600
-
+export const ETHMarginForGasFee = 0.5
 export enum AutomationState {
     Price_Hit_TickLower  = 'Price_hit_TickLower',
     Price_Hit_TickUpper = 'Price_hit_TickLower',

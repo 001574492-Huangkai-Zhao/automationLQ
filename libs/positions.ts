@@ -10,22 +10,10 @@ import {
   RemoveLiquidityOptions
 } from '@uniswap/v3-sdk'
 import { BigNumber, ethers } from 'ethers'
-import {
-  ERC20_ABI,
-  MAX_FEE_PER_GAS,
-  MAX_PRIORITY_FEE_PER_GAS,
-  NONFUNGIBLE_POSITION_MANAGER_ABI,
-  NONFUNGIBLE_POSITION_MANAGER_CONTRACT_ADDRESS,
-} from './constants'
+import {ERC20_ABI,MAX_FEE_PER_GAS,MAX_PRIORITY_FEE_PER_GAS,NONFUNGIBLE_POSITION_MANAGER_ABI,NONFUNGIBLE_POSITION_MANAGER_CONTRACT_ADDRESS,} from './constants'
 import { TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER } from './constants'
-import { fromReadableAmount } from './conversion'
 import { getPoolInfo,PoolInfo} from './pool'
-import {
-  sendTransaction,
-  TransactionState,
-  getWalletAddress,
-  sendTransactionAddLQ
-} from './providers'
+import {sendTransaction,TransactionState,getWalletAddress,sendTransactionAddLQ} from './providers'
 import{ getCurrencyBalance,getERC20Balance} from './balance'
 import { BaseProvider } from '@ethersproject/providers'
 import JSBI from 'jsbi'
@@ -54,7 +42,7 @@ export function sqrtPriceToTick(sqrtPrice: number):number {
   const remainder = tick % 10;
   return tick-remainder
 }
-export async function mintPosition(token0: Token,token1: Token,poolFee: FeeAmount,range:number,provider: BaseProvider,wallet: ethers.Wallet): Promise<number> {
+export async function mintPosition(token0: Token, token1: Token, poolFee: FeeAmount,leftRange: number, rightRange: number ,provider: BaseProvider, wallet: ethers.Wallet): Promise<number> {
   const address = wallet.address
   if (!address || !provider) {
     return -1
@@ -86,7 +74,8 @@ export async function mintPosition(token0: Token,token1: Token,poolFee: FeeAmoun
       JSBI.BigInt(token1Amount)
     ),
     poolInfo,
-    range
+    leftRange,
+    rightRange
   )
   console.log(`positionToMint liquidity: ${positionToMint.liquidity}`)
   console.log(`positionToMint tickLower: ${positionToMint.tickLower}`)
@@ -125,7 +114,8 @@ export async function constructPosition(
   token0Amount: CurrencyAmount<Token>,
   token1Amount: CurrencyAmount<Token>,
   poolInfo: PoolInfo,
-  range: number
+  leftRange: number,
+  rightRange: number
 ): Promise<Position> {
   // get pool info
 
@@ -141,8 +131,8 @@ export async function constructPosition(
   const poolTick = poolInfo.tick
   const poolPrice = tickToPrice(poolTick);
   const sqrtprice = Math.pow(poolPrice, 0.5);
-  const sqrtPriceUpper = sqrtprice * Math.pow((1+range), 0.5);
-  const sqrtPriceLower = sqrtprice * Math.pow((1-range), 0.5);
+  const sqrtPriceUpper = sqrtprice * Math.pow((1+rightRange), 0.5);
+  const sqrtPriceLower = sqrtprice * Math.pow((1-leftRange), 0.5);
   const tickUpper = sqrtPriceToTick(sqrtPriceUpper);
   const tickLower = sqrtPriceToTick(sqrtPriceLower);
   //const tickLower = sqrtPriceToTick(sqrtprice) -10;
