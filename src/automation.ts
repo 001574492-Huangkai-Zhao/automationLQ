@@ -59,14 +59,14 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet,
   await writeEnv(currentAutomationInfo)
 }
 
-export async function AutoDepositCV(positionRange:number, provider: BaseProvider,wallet: ethers.Wallet){
+export async function AutoDepositCV(tickLower:number,tickUpper:number,provider: BaseProvider,wallet: ethers.Wallet){
     let currentAutomationInfo = await readEnv()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV)
-    const positinID = await mintPosition(token0,token1, poolFee, positionRange, provider,wallet);
+    await rebalanceTokens(provider, wallet, token0, token1, poolFee,tickLower,tickUpper)
+    const positinID = await mintPosition(token0,token1, poolFee, tickLower,tickUpper, provider,wallet);
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     if(positinID==-1||positinID==1){

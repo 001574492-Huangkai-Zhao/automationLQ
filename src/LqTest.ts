@@ -70,4 +70,4 @@ async function queryTickLQWithRange(change:number) {
 }
 
 //queryTickLQ(-202199,-201199)
-queryTickLQWithRange(0.05)
+queryTickLQWithRange(0.1)
