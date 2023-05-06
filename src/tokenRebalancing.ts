@@ -72,16 +72,16 @@ export async function constructRebalancingAsymmetry( amount0: number, decimal0:n
   const constant = (1/sqrtprice - 1/sqrtPriceUpper)/(sqrtprice - sqrtPriceLower);
   let swapAmount
   const swap0 = (amount0 - amount1*constant)/(1+constant*poolPrice*(1-FeeAmount.LOW/100000));
-  const ETHRemain = ETHMarginForGasFee
-  if(swap0 > ETHRemain) {
+  
+  if(swap0 > 0) {
     swap0for1=true
     //swapAmount = swap0*Math.pow(10, -decimal0)
-    swapAmount = swap0*Math.pow(10, -decimal0) - ETHRemain;
+    swapAmount = swap0*Math.pow(10, -decimal0);
     console.log(`going to swap in WETH amount: ${swapAmount}`);
   } else {
     swap0for1=false
     //const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
-    const swap1= -(amount0 - amount1*constant + ETHRemain*Math.pow(10, decimal0))/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
+    const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     swapAmount = swap1*Math.pow(10, -decimal1);
     console.log(`going to swap in TETHER amount: ${swapAmount}`);
   }
