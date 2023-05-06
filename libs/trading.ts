@@ -248,6 +248,41 @@ export async function swapWETH(
     return TransactionState.Failed
   }
 }
+
+export async function withdrawWETH(
+  wethAmount: number,
+  provider: BaseProvider,
+  wallet: ethers.Wallet
+): Promise<TransactionState> {
+  const address = wallet.address
+  if (!provider || !address) {
+    console.log('No Provider Found')
+    return TransactionState.Failed
+  }
+  const ethIn = ethers.utils.parseUnits(wethAmount.toString(),"ether")
+
+  try {
+    const tokenContract = new ethers.Contract(
+      WETH_TOKEN.address,
+      WETH_ABI,
+      provider
+    )
+
+    const transaction = await tokenContract.populateTransaction.withdraw(ethIn)
+
+    return sendTransaction(
+    {
+      ...transaction,
+      from: address,
+    },
+    provider,
+    wallet)
+  } catch (e) {
+    console.error(e)
+    return TransactionState.Failed
+  }
+}
+
 export async function transferWETH(ethAmount: number,
   provider: BaseProvider,
   from: ethers.Wallet,
