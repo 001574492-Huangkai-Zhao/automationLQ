@@ -1,6 +1,8 @@
 import fetch from 'cross-fetch'
 
 async function queryTest(poolID: string){
+    //revise timespan parameter to adust time span for average calculation, by defualt it's 30 days 
+    let timeSpan = 30;
     fetch('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', {
     method: 'POST',
     headers: {
@@ -8,35 +10,39 @@ async function queryTest(poolID: string){
     },
     body: JSON.stringify({
         query: `
-        query ETH_THT($poolID: String) {
+        query ETH_THT($poolID: String, $timeSpan: Int) {
             pool(id: $poolID) {
-            feeTier
-            token0 {
-                name
-            }
-            token1 {
-                name
-            }
-            liquidity
-            poolDayData(orderDirection: desc, first: 10, orderBy: date) {
-                date
-                feesUSD
-                volumeUSD
-              }
+                feeTier
+                token0 {
+                    name
+                }
+                token1 {
+                    name
+                }
+                liquidity
+                poolDayData(orderDirection: desc, first: $timeSpan, orderBy: date) {
+                    date
+                    feesUSD
+                    volumeUSD
+                    liquidity
+                }
             }
         }
         `,
         variables: {
             poolID: poolID,
+            timeSpan: timeSpan,
         },
     }),
     })
     .then((res) => res.json())
     .then((result) => {
-        console.log(result.data.pool.token0.name + " "+ result.data.pool.token1.name + " "+ result.data.pool.feeTier);
+        console.log(result.data.pool.token0.name + " & "+ result.data.pool.token1.name + " "+ result.data.pool.feeTier);
         //console.log(`LQ: ${result.data.pool.liquidity}`);
-        console.log(`daily fee per LQ: ${Number(result.data.pool.poolDayData[1].feesUSD)/Number(result.data.pool.liquidity)}`);
-        console.log(averageFee(result.data.pool.poolDayData))
+        //
+        console.log(`fee per LQ in a day: ${(Number(result.data.pool.poolDayData[1].feesUSD)/Number(result.data.pool.liquidity)*Math.pow(10,15)).toFixed(2)}`);
+        let averageDailyFee = averageLQ(result.data.pool.poolDayData)
+        console.log(`average daily fee per LQ: ${(averageFee(result.data.pool.poolDayData)/averageDailyFee*Math.pow(10,15)).toFixed(2)}`)
         console.log()
     });
 }
@@ -45,6 +51,16 @@ function averageFee(arr: Array<any>): number{
     let feeSum = 0;
     while (i < arr.length) {
         feeSum += Number(arr[i].feesUSD);
+        i++;
+    }
+    return feeSum/(arr.length-1);
+}
+
+function averageLQ(arr: Array<any>): number{
+    let i = 1;
+    let feeSum = 0;
+    while (i < arr.length) {
+        feeSum += Number(arr[i].liquidity);
         i++;
     }
     return feeSum/(arr.length-1);
