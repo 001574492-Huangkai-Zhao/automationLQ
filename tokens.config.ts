@@ -28,6 +28,10 @@ export interface NetworkConfig {
     address: string
     privateKey: string
   }
+  wallet3: {
+    address: string
+    privateKey: string
+  }
   tokensETHTether: {
     token0: Token
     token1: Token
@@ -72,6 +76,11 @@ export const CurrentConfig: NetworkConfig = {
     address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
     privateKey:
       '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
+  },
+  wallet3: {
+    address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    privateKey:
+      '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6',
   },
   tokensETHTether: {
     token0: WETH_TOKEN,

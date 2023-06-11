@@ -1,6 +1,6 @@
 import{getERC20Balance} from '../libs/balance'
 import{getPoolInfo} from '../libs/pool'
-import{swapWETH} from '../libs/trading'
+import{swapWETH,withdrawWETH} from '../libs/trading'
 import { CurrentConfig } from '../tokens.config'
 import {
     TransactionState,
@@ -10,13 +10,13 @@ import {
   } from '@uniswap/v3-sdk'
 import {mintPosition,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens} from './tokenRebalancing'
-import {AutomationState,} from './automationConstants'
+import {AutomationState, ETHMarginForGasFee,} from './automationConstants'
 import { BaseProvider } from '@ethersproject/providers'
 import { ethers} from 'ethers'
-import{readEnv,writeEnv} from './RWAutomationState'
+import{readAutomationStats,writeAutomationStats} from './RWAutomationState'
 
 export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet){
-  let currentAutomationInfo = await readEnv()
+  let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
   let positionID = currentAutomationInfo.CONSERVATIVE_POSITION_ID
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
@@ -32,6 +32,13 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   console.log(`position tickLower: ${tickLower}`)
   console.log(`position tickUpper: ${tickUpper}`)
   console.log(`position LQ: ${parseInt(posi_info.liquidity.toString())}`)
+  
+  if(positionID==1)
+  {
+    console.log('goooooooooooooooooooooooooooood')
+    return
+  }
+
   if(posi_info.liquidity.eq(0)) {
     automationState = AutomationState.NoAction_Required
   }
@@ -41,12 +48,16 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
     automationState = AutomationState.Price_Hit_TickUpper
+    currentAutomationInfo.CONSERVATIVE_POSITION_ID = 1
+    currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = posi_info.liquidity._hex
   } else if(currentTick < tickLower) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
     console.log("current price hit lower range, redeem as ETH")
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
     automationState = AutomationState.Price_Hit_TickLower
+    currentAutomationInfo.CONSERVATIVE_POSITION_ID = 1
+    currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = posi_info.liquidity._hex
   } else{
     console.log("current price stay in range of this position, no need for redeem!!!!!!!!")
     automationState = AutomationState.Price_In_Range
@@ -59,23 +70,26 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   console.log(`after redeem: ${token1Amount_LQ}`);
   currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV=automationState
 
-  await writeEnv(currentAutomationInfo)
+  await writeAutomationStats(currentAutomationInfo,wallet.address.substring(0,5))
 }
 
 export async function AutoDepositCV(leftRange:number, rightRange:number,provider: BaseProvider,wallet: ethers.Wallet){
-    let currentAutomationInfo = await readEnv()
-    if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV == AutomationState.Price_In_Range 
-      || currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV == AutomationState.Automation_Paused_PendingTX 
-      || currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV== AutomationState.Automation_Paused_RevertedTX 
-      || currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV == AutomationState.Waiting_DepositLQ 
-      || currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV == AutomationState.NoAction_Required){
-        return 
-      }
-
+    let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
-    const ETHBalance = provider.getBalance(wallet.address)
+    if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV != AutomationState.Executing_DepositLQ ){
+        return 
+      }
+    const ETHBalance = Number(await provider.getBalance(wallet.address))
+    // withdraw WETH to ETH for gas fee, when ETH balance is below the ETHMarginForGasFee
+    // withdraw amount is ETHMarginForGasFee 
+    // so the ETH balance will bigger than ETHMarginForGasFee to avoid frequent withdraw
+    if(ETHBalance < ETHMarginForGasFee ){
+      const withdrawAmount = ETHMarginForGasFee - ETHBalance
+      await withdrawWETH(withdrawAmount, provider, wallet)
+    }
+
     await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
     const positinID = await mintPosition(token0,token1, poolFee, leftRange, rightRange, provider,wallet);
     console.log(`minted positio ID: ${positinID}`);
@@ -88,15 +102,16 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
     const positionInfo = await getPositionInfo(positinID,provider)
     currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV = positionInfo.tickLower
     currentAutomationInfo.CURRENT_LQ_RANGE_UPPER_CV = positionInfo.tickUpper
-    currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = positionInfo.liquidity.toNumber()
+    currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = positionInfo.liquidity._hex
     currentAutomationInfo.CONSERVATIVE_POSITION_ID = positinID
     currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Price_In_Range
+    currentAutomationInfo.WALLET_ADDRESS = wallet.address
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
     const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
 
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
-    await writeEnv(currentAutomationInfo)
+    await writeAutomationStats(currentAutomationInfo,wallet.address.substring(0,5))
 }
 
 

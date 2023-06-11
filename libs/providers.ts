@@ -47,6 +47,11 @@ export function createForkingChainWallet2(): ethers.Wallet {
   return new ethers.Wallet(CurrentConfig.wallet2.privateKey, provider)
 }
 
+export function createForkingChainWallet3(): ethers.Wallet {
+  let provider = getForkingChainProvider()
+  return new ethers.Wallet(CurrentConfig.wallet3.privateKey, provider)
+}
+
 
 export async function sendTransaction(
   transaction: ethers.providers.TransactionRequest,
