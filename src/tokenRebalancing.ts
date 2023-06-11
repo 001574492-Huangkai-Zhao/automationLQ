@@ -31,6 +31,12 @@ export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wall
     else
       await rebalancing(token1, token0, swapInfo.swapAmount, provider, wallet)
     console.log()
+    const token0AmountAF = await getERC20Balance(provider,walletAddress,token0.address)
+    const token1AmountAF = await getERC20Balance(provider, walletAddress,token1.address)
+    console.log('---------------Token0 & Token1 before deposit-------------------------')
+    console.log(`Token0 balance: ${token0AmountAF}`);
+    console.log(`Token1 balance: ${token1AmountAF}`);
+    console.log('---------------------------------------------')
     //const token0AmountA = await getERC20Balance(provider, walletAddress,token0.address)
     //const token1AmountA = await getERC20Balance(provider, walletAddress,token1.address)
     //console.log(`after trade: ${token0AmountA}`);

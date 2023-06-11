@@ -6,9 +6,10 @@ export const FeeCollectionThreshold = 1600
 export const ETHMarginForGasFee = 0.5
 export enum AutomationState {
     Price_Hit_TickLower  = 'Price_hit_TickLower',
-    Price_Hit_TickUpper = 'Price_hit_TickLower',
-    Price_In_Range = 'Price_hit_TickLower',
+    Price_Hit_TickUpper = 'Price_hit_TickUpper',
+    Price_In_Range = 'Price_In_Range',
     Waiting_DepositLQ = 'Waiting_for_DepositLQ',
+    Executing_DepositLQ = 'Executing_DepositLQ',
     OraclePrice_GT_MaxPriceTolerance = 'OraclePrice_gt_MaxPriceTolerance',
     PoolInRangeLQ_LT_MaxLQTolerance = 'PoolInRangeLQ_lt_MaxLQTolerance',
     Automation_Paused_RevertedTX = 'Automation_paused_RevertedTX',
