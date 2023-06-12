@@ -53,7 +53,7 @@ export function createForkingChainWallet3(): ethers.Wallet {
 }
 
 
-export async function sendTransaction(
+export async function sendTxAndGetReceipt(
   transaction: ethers.providers.TransactionRequest,
   provider: BaseProvider,
   wallet: ethers.Wallet
@@ -99,7 +99,7 @@ export async function sendTransaction(
   }
 }
 
-export async function sendTransactionAddLQ(
+export async function sendAddLQTxAndGetLQID(
   transaction: ethers.providers.TransactionRequest,
   provider: BaseProvider,
   wallet: ethers.Wallet

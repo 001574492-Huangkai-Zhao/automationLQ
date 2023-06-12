@@ -14,8 +14,10 @@ export async function addLQTest(positionRange: number) {
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
+            // need to handle tx fail
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+        // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
@@ -57,6 +59,7 @@ export async function redeemTest() {
       console.log(`position LQ: ${parseInt(posi_info.liquidity.toString())}`)
       console.log()
       const redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionIndex)
+          // need to handle tx fail
       const poolinfoA = await getPoolInfo(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1, FeeAmount.LOW,provider)
       console.log(`liquidity: ${poolinfoA.liquidity.toString()}`);
     }
