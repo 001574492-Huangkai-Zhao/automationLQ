@@ -13,7 +13,7 @@ import { BigNumber, ethers } from 'ethers'
 import {ERC20_ABI,MAX_FEE_PER_GAS,MAX_PRIORITY_FEE_PER_GAS,NONFUNGIBLE_POSITION_MANAGER_ABI,NONFUNGIBLE_POSITION_MANAGER_CONTRACT_ADDRESS,} from './constants'
 import { TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER } from './constants'
 import { getPoolInfo,PoolInfo} from './pool'
-import {sendTransaction,TransactionState,getWalletAddress,sendTransactionAddLQ} from './providers'
+import {sendTxAndGetReceipt,sendAddLQTxAndGetLQID,TransactionState,getWalletAddress} from './providers'
 import{ getCurrencyBalance,getERC20Balance} from './balance'
 import { BaseProvider } from '@ethersproject/providers'
 import JSBI from 'jsbi'
@@ -42,6 +42,7 @@ export function sqrtPriceToTick(sqrtPrice: number):number {
   const remainder = tick % 10;
   return tick-remainder
 }
+
 export async function mintPosition(token0: Token, token1: Token, poolFee: FeeAmount,leftRange: number, rightRange: number ,provider: BaseProvider, wallet: ethers.Wallet): Promise<number> {
   const address = wallet.address
   if (!address || !provider) {
@@ -51,7 +52,6 @@ export async function mintPosition(token0: Token, token1: Token, poolFee: FeeAmo
   // Give approval to the contract to transfer tokens
   const tokenInApproval = await getTokenTransferApproval(token0,provider,wallet)
   const tokenOutApproval = await getTokenTransferApproval(token1,provider,wallet)
-
   // Fail if transfer approvals do not go through
   if (
     tokenInApproval !== TransactionState.Sent && tokenInApproval !== TransactionState.NotRequired||
@@ -80,8 +80,8 @@ export async function mintPosition(token0: Token, token1: Token, poolFee: FeeAmo
   console.log(`positionToMint liquidity: ${positionToMint.liquidity}`)
   console.log(`positionToMint tickLower: ${positionToMint.tickLower}`)
   console.log(`positionToMint tickUpper: ${positionToMint.tickUpper}`)
-  console.log(`positionToMint tickCurrent: ${positionToMint.pool.tickCurrent}`)
-  console.log(`positionToMint liquidity total(before add LQ): ${positionToMint.pool.liquidity}`)
+  //console.log(`positionToMint tickCurrent: ${positionToMint.pool.tickCurrent}`)
+  //console.log(`positionToMint liquidity total(before add LQ): ${positionToMint.pool.liquidity}`)
 
   const mintOptions: MintOptions = {
     recipient: address,
@@ -106,7 +106,10 @@ export async function mintPosition(token0: Token, token1: Token, poolFee: FeeAmo
     gasLimit: 9999999
   }
 
-  const res = await sendTransactionAddLQ(tx,provider,wallet)
+  const res = await sendAddLQTxAndGetLQID(tx,provider,wallet)
+  if(res == -1) {
+    console.log(`failed to add LQ`);
+  }
   return res
 }
 
@@ -234,16 +237,21 @@ export async function getTokenTransferApproval(
       tokenAmountToApprove
     )
 
-    return sendTransaction(
-    {
-      ...transaction,
-      from: address,
-      gasLimit: 99999
-    },
-    provider,
-    wallet)
+    const res = await sendTxAndGetReceipt(
+      {
+        ...transaction,
+        from: address,
+        gasLimit: 99999
+      },
+      provider,
+      wallet)
+    if(res == TransactionState.Failed) {
+      console.log(`failed to get Token Transfer Approval`);
+    }
+    return res
   } catch (e) {
     console.error(e)
+    
     return TransactionState.Failed
   }
 }
@@ -335,7 +343,10 @@ export async function removeLiquidity(
     maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS,
     gasLimit: 9999999
   }
-  const res = await sendTransaction(tx,provider,wallet)
+  const res = await sendTxAndGetReceipt(tx,provider,wallet)
+  if(res == TransactionState.Failed) {
+    console.log(`failed to remove Liquidity from position ID ${positionId}`);
+  }
   return res
 }
 

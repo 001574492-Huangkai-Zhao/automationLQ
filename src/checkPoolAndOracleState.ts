@@ -178,6 +178,7 @@ async function getPoolLQValue(
   const receipt2 = await swapWETH(9000,provider,wallet2)
   const receipt3 = await transferWETH(9000,provider,wallet1,wallet)
   const receipt4 = await transferWETH(9000,provider,wallet2,wallet)
+          // need to handle tx fail
   const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
   //const token1Amount = await getERC20Balance(provider,walletAddress,token1.address)
   console.log(`before trade: ${token0Amount}`);
@@ -199,7 +200,7 @@ async function getPoolLQValue(
   while(poolInfo.tick > tickLower){
     const uncheckedTrade = await createTrade(swapEthAmount, token0, token1, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet)
-
+    // need to handle tx fail
     poolInfo = await getPoolInfo(token0,token1,poolFee,provider)
     const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
       CurrentConfig.tokensETHTether.token1)
@@ -228,6 +229,7 @@ async function getPoolLQValueWithTick(
   const receipt2 = await swapWETH(9000,provider,wallet2)
   const receipt3 = await transferWETH(9000,provider,wallet1,wallet)
   const receipt4 = await transferWETH(9000,provider,wallet2,wallet)
+          // need to handle tx fail
   const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
   //const token1Amount = await getERC20Balance(provider,walletAddress,token1.address)
   console.log(`before trade: ${token0Amount}`);
@@ -247,7 +249,7 @@ async function getPoolLQValueWithTick(
   while(poolInfo.tick > tickLower){
     const uncheckedTrade = await createTrade(swapEthAmount, token0, token1, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet)
-
+    // need to handle tx fail
     poolInfo = await getPoolInfo(token0,token1,poolFee,provider)
     const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
       CurrentConfig.tokensETHTether.token1)
@@ -293,6 +295,7 @@ async function recover(
 
   const uncheckedTrade = await createTrade(+token1AmountToSwapIn.toFixed(0)/Math.pow(10,token1.decimals), token1, token0, FeeAmount.LOW, provider)
   const swapOutput = await executeTrade(uncheckedTrade, token1, provider, wallet)
+      // need to handle tx fail
   const poolInfo = await getPoolInfo(token0,token1,poolFee,provider)
   const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
     CurrentConfig.tokensETHTether.token1)
@@ -320,14 +323,16 @@ async function swapInTetherTest(
   
   //swap eth for usdc
   const uncheckedTradeETHUSDC = await createTrade(5000, eth, usdc, FeeAmount.LOW, provider)
-  await executeTrade(uncheckedTradeETHUSDC, eth, provider, wallet)
+  const res = await executeTrade(uncheckedTradeETHUSDC, eth, provider, wallet)
+      // need to handle tx fail
   const usdcAmount = await getERC20Balance(provider, walletAddress, usdc.address)
   const usdcAmountToSwapIn = usdcAmount*0.96
   console.log(`usdc amount: ${usdcAmount}`);
 
   //swap usdc for tether
   const uncheckedTradeUSDCTether = await createTrade(+usdcAmountToSwapIn.toFixed(0)/Math.pow(10,usdc.decimals), usdc, tether, FeeAmount.LOW, provider)
-  await executeTrade(uncheckedTradeUSDCTether, usdc, provider, wallet)
+  const res2 = await executeTrade(uncheckedTradeUSDCTether, usdc, provider, wallet)
+      // need to handle tx fail
   const tetherAmount = await getERC20Balance(provider, walletAddress, tether.address)
   console.log(`tether amount: ${tetherAmount}`);
 
@@ -346,7 +351,7 @@ async function swapInTetherTest(
   while(poolInfo.tick < tickUpper){
     const uncheckedTrade = await createTrade(swapTetherAmount, tether, eth, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, tether, provider, wallet)
-
+    // need to handle tx fail
     poolInfo = await await getPoolInfo(eth,tether,FeeAmount.LOW,provider)
     const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
       CurrentConfig.tokensETHTether.token1)

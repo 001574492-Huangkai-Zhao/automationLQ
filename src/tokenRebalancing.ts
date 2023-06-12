@@ -43,6 +43,7 @@ export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wall
     //console.log(`after trade: ${token1AmountA}`);
     //console.log()            
     //const positinID = await mintPosition(token0,token1, poolFee,range,provider,wallet);
+        // need to handle tx fail
     //console.log(`minted positio ID: ${positinID}`);
     //console.log()
     //const token0Amount_LQ = await getERC20Balance(provider,walletAddress,token0.address)
@@ -99,6 +100,7 @@ async function rebalancing(token0: Token, token1: Token, swapAmount: number,prov
   try {
     const uncheckedTrade = await createTrade(swapAmount, token0, token1, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet)
+        // need to handle tx fail
     //console.log(`swapOutput: ${swapOutput}`);
     return swapOutput;
   } catch (e) {

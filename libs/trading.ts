@@ -31,7 +31,7 @@ import { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS,} from './constants'
 import { getPoolInfo } from './pool'
 import {
   getWalletAddress,
-  sendTransaction,
+  sendTxAndGetReceipt,
   TransactionState,
 } from './providers'
 import { fromReadableAmount } from './utils'
@@ -40,7 +40,6 @@ import { BaseProvider } from '@ethersproject/providers'
 export type TokenTrade = Trade<Token, Token, TradeType>
 
 // Trading Functions
-
 export async function createTrade(amountIn:number,tokenIn: Token,tokenOut: Token, poolFee: FeeAmount,provider: BaseProvider): Promise<TokenTrade> {
   const poolInfo = await getPoolInfo(tokenIn,tokenOut,poolFee,provider)
   //console.log(`amount in: ${amountIn}`);
@@ -119,8 +118,10 @@ export async function executeTrade(
     gasLimit: 999999,
   }
 
-  const res = await sendTransaction(tx, provider, wallet)
-  
+  const res = await sendTxAndGetReceipt(tx, provider, wallet)
+  if(res == TransactionState.Failed) {
+    console.log(`failed to execute trade`);
+  }
   return res
 }
 
@@ -183,14 +184,18 @@ export async function getTokenTransferApproval(
       tokenAmountToApprove
     )
 
-    return sendTransaction(
-    {
-      ...transaction,
-      from: address,
-      gasLimit: 9999999
-    },
-    provider,
-    wallet)
+    const res = await  sendTxAndGetReceipt(
+      {
+        ...transaction,
+        from: address,
+        gasLimit: 9999999
+      },
+      provider,
+      wallet)
+    if(res == TransactionState.Failed) {
+      console.log(`failed to get Token Transfer Approval`);
+    }
+    return res
   } catch (e) {
     console.error(e)
     return TransactionState.Failed
@@ -234,15 +239,19 @@ export async function swapWETH(
 
     const transaction = await tokenContract.populateTransaction.deposit()
 
-    return sendTransaction(
-    {
-      ...transaction,
-      from: address,
-      to : WETH_TOKEN.address,
-      value: ethIn,
-    },
-    provider,
-    wallet)
+    const res = await sendTxAndGetReceipt(
+      {
+        ...transaction,
+        from: address,
+        to : WETH_TOKEN.address,
+        value: ethIn,
+      },
+      provider,
+      wallet)
+    if(res == TransactionState.Failed) {
+      console.log(`failed to swapWETH`);
+    }
+    return res
   } catch (e) {
     console.error(e)
     return TransactionState.Failed
@@ -270,13 +279,17 @@ export async function withdrawWETH(
 
     const transaction = await tokenContract.populateTransaction.withdraw(ethIn)
 
-    return sendTransaction(
-    {
-      ...transaction,
-      from: address,
-    },
-    provider,
-    wallet)
+    const res = await sendTxAndGetReceipt(
+      {
+        ...transaction,
+        from: address,
+      },
+      provider,
+      wallet)
+    if(res == TransactionState.Failed) {
+      console.log(`failed to withdraw WETH`);
+    }
+    return res
   } catch (e) {
     console.error(e)
     return TransactionState.Failed
@@ -297,15 +310,19 @@ export async function transferWETH(ethAmount: number,
       const ethIn = ethers.utils.parseUnits(ethAmount.toString(),"ether")
       const transaction = await tokenContract.populateTransaction.transfer(receiver.address,ethIn)
   
-      return sendTransaction(
-      {
-        ...transaction,
-        from: from.address,
-        to : WETH_TOKEN.address,
-        gasLimit:999999,
-      },
-      provider,
-      from)
+      const res = await sendTxAndGetReceipt(
+        {
+          ...transaction,
+          from: from.address,
+          to : WETH_TOKEN.address,
+          gasLimit:999999,
+        },
+        provider,
+        from)
+      if(res == TransactionState.Failed) {
+        console.log(`failed to transfer WETH`);
+      }
+      return res
     } catch (e) {
       console.error(e)
       return TransactionState.Failed
