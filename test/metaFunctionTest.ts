@@ -7,15 +7,15 @@ import {FeeAmount,} from '@uniswap/v3-sdk'
 import {mintPosition,getPositionIds,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens} from '../src/tokenRebalancing'
 
-export async function addLQTest(positionRange: number) {
+export async function addLQTest(leftRange: number,rightRange: number) {
     const provider= getForkingChainProvider()
     const wallet = createForkingChainWallet()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
-    const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+    await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
+    const positinID = await mintPosition(token0,token1, poolFee, leftRange,rightRange,provider,wallet);
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
@@ -82,6 +82,6 @@ export async function redeemTest() {
   console.log(`after remove liquidity: ${token1Amount_LQ}`);
 }
 
-addLQTest(0.15)
+addLQTest(0.15,0.1)
 .then((value)=>{checkApprovalTest()})
 .then((value)=>{redeemTest()})

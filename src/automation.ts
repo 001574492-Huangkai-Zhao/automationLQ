@@ -35,7 +35,6 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   
   if(positionID==1)
   {
-    console.log('goooooooooooooooooooooooooooood')
     return
   }
 

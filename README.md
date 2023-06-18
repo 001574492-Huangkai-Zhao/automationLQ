@@ -11,3 +11,8 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
+
+Stop anvil
+```
+Windows: taskkill /IM anvil.exe /F
+Linux:
