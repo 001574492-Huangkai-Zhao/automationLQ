@@ -47,6 +47,7 @@ async function queryTest(poolID: string){
     });
 }
 function averageFee(arr: Array<any>): number{
+    //skip the first data
     let i = 1;
     let feeSum = 0;
     while (i < arr.length) {

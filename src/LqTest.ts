@@ -3,7 +3,7 @@ import { CurrentConfig } from '../tokens.config'
 import {getForkingChainProvider  } from '../libs/providers'
 import {FeeAmount,} from '@uniswap/v3-sdk'
 import {tickToPriceRealWorld} from '../libs/positions'
-import { arrayToCsv } from './writeCSV'
+import { arrayToCsv } from '../status/writeCSV'
 
 async function queryTickLQ(tickLeft:number, tickRight:number) {
     const provider= getForkingChainProvider()
