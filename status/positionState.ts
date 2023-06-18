@@ -90,7 +90,7 @@ async function queryLockBalance() {
   console.log(`token0Balance: ${token0Balance.toFixed(0)}`)
   console.log(`token1Balance: ${token1Balance.toFixed(0)}`)
 }
-//queryPoolState()
-queryCurrentTickstate()
+queryPoolState()
+//queryCurrentTickstate()
 //queryTickstate(-201300)
 //queryLockBalance()

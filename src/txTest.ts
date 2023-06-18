@@ -16,6 +16,7 @@ async function swapInETHTest(token0: Token, token1: Token,poolFee: FeeAmount,ran
     const wallet = createForkingChainWallet()
     const walletAddress = wallet.address
     const receipt = await swapWETH(900, provider, wallet)
+    // need to handle tx fail
     const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
     //const token1Amount = await getERC20Balance(provider,walletAddress,token1.address)
     console.log(`before trade: ${token0Amount}`);
@@ -32,6 +33,7 @@ async function swapInETHTest(token0: Token, token1: Token,poolFee: FeeAmount,ran
 
     const uncheckedTrade = await createTrade(swapEthAmount, token0, token1, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet)
+        // need to handle tx fail
     if(swapOutput == TransactionState.Failed) {
         console.log('swap failed, please chack out the reason')
         return

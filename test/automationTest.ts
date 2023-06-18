@@ -24,6 +24,7 @@ async function AutoRedeemCVTest() {
     let positionStats
     //construct position for testing
     let receipt = await swapWETH(100, provider,wallet)
+            // need to handle tx fail
     InitializeAutomationStats(wallet.address.substring(0,5))
     let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
     currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Executing_DepositLQ
@@ -32,6 +33,7 @@ async function AutoRedeemCVTest() {
     
     //Get 8000 WETH for testing || use wallet 2
     receipt = await swapWETH(8000, provider, wallet2)
+            // need to handle tx fail
     //while-loop swap in ETH until pool price hit PriceLower
     currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
     const tickLower = currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_CV
@@ -40,7 +42,7 @@ async function AutoRedeemCVTest() {
     while(poolInfo.tick > tickLower){
       const uncheckedTrade = await createTrade(swapETHAmount, token0, token1, FeeAmount.LOW, provider)
       const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet2)
-  
+      // need to handle tx fail 
       poolInfo = await getPoolInfo(token0,token1,FeeAmount.LOW,provider)
       const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
         CurrentConfig.tokensETHTether.token1)
@@ -78,8 +80,10 @@ async function AutoRedeemCVTest() {
     console.log(USDTAmount)
     const uncheckedTradeUSDT = await createTrade(USDTAmount, token1, token0, FeeAmount.MEDIUM, provider)
     const swapOutput = await executeTrade(uncheckedTradeUSDT, token1, provider, wallet2)
+    // need to handle tx fail
     //construct position for testing
     receipt = await swapWETH(100, provider,wallet1)
+            // need to handle tx fail
     InitializeAutomationStats(wallet1.address.substring(0,5))
     currentAutomationInfo = await readAutomationStats(wallet1.address.substring(0,5))
     currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Executing_DepositLQ
@@ -88,8 +92,10 @@ async function AutoRedeemCVTest() {
     
     //Get 8000 ETH equals value of USDT from 3000 fee pool || use wallet3
     receipt = await swapWETH(8000, provider, wallet3)
+            // need to handle tx fail
     const uncheckedTrade = await createTrade(8000, token0, token1, FeeAmount.MEDIUM, provider)
     const receipt1 = await executeTrade(uncheckedTrade, token0, provider, wallet3)
+    // need to handle tx fail
     token1Amount= await getERC20Balance(provider,wallet3.address,token1.address)
     console.log(token1Amount)
     
@@ -101,7 +107,7 @@ async function AutoRedeemCVTest() {
     while(poolInfo.tick < tickUpper){
       const uncheckedTrade = await createTrade(swapUSDTAmount, token1, token0, FeeAmount.LOW, provider)
       const swapOutput = await executeTrade(uncheckedTrade, token1, provider, wallet3)
-
+    // need to handle tx fail
       poolInfo = await getPoolInfo(token0,token1,FeeAmount.LOW,provider)
       const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
         CurrentConfig.tokensETHTether.token1)
@@ -140,6 +146,7 @@ async function AutoRedeemCVTest() {
     //pausing executing deposit
     AutomationStats.CURRENT_AUTOMATION_STATE_CV = AutomationState.Waiting_DepositLQ
     const receipt = await swapWETH(100, provider,wallet)
+            // need to handle tx fail
     await writeAutomationStats(AutomationStats,wallet.address.substring(0,5)).then((value)=>{AutoDepositCV(0.07,0.05,provider,wallet)})
     AutomationStats = await readAutomationStats(wallet.address.substring(0,5))
     console.log(AutomationStats)
@@ -168,8 +175,10 @@ async function AutoRedeemCVTest() {
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(10, provider,wallet)
+            // need to handle tx fail
     await rebalanceTokens(provider, wallet, token0, token1, poolFee,tickLower,tickUpper)
     const positinID = await mintPosition(token0,token1, poolFee, tickLower,tickUpper, provider,wallet);
+        // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)

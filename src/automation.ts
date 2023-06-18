@@ -43,6 +43,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   }
   if(currentTick > tickUpper) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
+        // need to handle tx fail
     console.log("current price hit Upper range, redeem as Tether")
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
@@ -51,6 +52,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
     currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = posi_info.liquidity._hex
   } else if(currentTick < tickLower) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
+        // need to handle tx fail
     console.log("current price hit lower range, redeem as ETH")
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
@@ -87,10 +89,13 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
     if(ETHBalance < ETHMarginForGasFee ){
       const withdrawAmount = ETHMarginForGasFee - ETHBalance
       await withdrawWETH(withdrawAmount, provider, wallet)
+              // need to handle tx fail
     }
 
     await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
     const positinID = await mintPosition(token0,token1, poolFee, leftRange, rightRange, provider,wallet);
+ 
+    // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     if(positinID==-1||positinID==1){
@@ -123,6 +128,7 @@ export async function AutoDepositAG(positionRange:number, provider: BaseProvider
     
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_AG)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
+        // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     if(positinID==-1||positinID==1){
@@ -149,8 +155,10 @@ export async function AutoDepositInitial(provider: BaseProvider, walletCV: ether
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
+            // need to handle tx fail
     await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange, provider, wallet);
+        // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
