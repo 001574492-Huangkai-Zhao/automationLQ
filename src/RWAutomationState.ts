@@ -27,7 +27,7 @@ export async function writeAutomationStats(automationInfo:AutomationInfo,walletN
     contentToWrite+= '"CONSERVATIVE_POSITION_ID" :'+'"'+automationInfo.CONSERVATIVE_POSITION_ID+'"'+',\n'
     contentToWrite+= '"AGGRESSIVE_POSITION_ID" :'+'"'+automationInfo.AGGRESSIVE_POSITION_ID+'"'+'\n'
     contentToWrite += '}\n'
-    let fileName = './AutomationStats_'
+    let fileName = './AutomationStats/AutomationStats_'
     fileName+= walletName
     writeFileSync(fileName, contentToWrite);
 }
@@ -48,14 +48,14 @@ export async function InitializeAutomationStats(walletName:string){
   contentToWrite+= '"CONSERVATIVE_POSITION_ID" :'+'"1"'+',\n'
   contentToWrite+= '"AGGRESSIVE_POSITION_ID" :'+'"1"'+'\n'
   contentToWrite += '}\n'
-  let fileName = './AutomationStats_'
+  let fileName = './AutomationStats/AutomationStats_'
   fileName+= walletName
   writeFileSync(fileName, contentToWrite)
 
 }
 
 export async function readAutomationStats(walletName:string): Promise<AutomationInfo>{
-  const fileString = readFileSync('./AutomationStats_'+walletName,'utf-8')
+  const fileString = readFileSync('./AutomationStats/AutomationStats_'+walletName,'utf-8')
   const automationStats : AutomationInfo = JSON.parse(fileString)
   return automationStats
 }
