@@ -2,12 +2,8 @@ import{getERC20Balance} from '../libs/balance'
 import{getPoolInfo} from '../libs/pool'
 import{swapWETH,withdrawWETH} from '../libs/trading'
 import { CurrentConfig } from '../tokens.config'
-import {
-    TransactionState,
-  } from '../libs/providers'
-  import {
-    FeeAmount,
-  } from '@uniswap/v3-sdk'
+import {TransactionState,} from '../libs/providers'
+import {FeeAmount,} from '@uniswap/v3-sdk'
 import {mintPosition,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens} from './tokenRebalancing'
 import {AutomationState, ETHMarginForGasFee,} from './automationConstants'

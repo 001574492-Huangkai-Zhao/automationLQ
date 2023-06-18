@@ -11,6 +11,7 @@ import { CurrentConfig } from '../tokens.config'
 import fetch from 'cross-fetch'
 const LQRatio = 0.01
 import moment from 'moment';
+
 /*
 export async function checkPoolAndOracleState(): Promise<AutomationState>{
   const maxTolerance = 0.05
