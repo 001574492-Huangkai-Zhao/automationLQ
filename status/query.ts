@@ -11,6 +11,7 @@ import { CurrentConfig } from '../tokens.config'
 import fetch from 'cross-fetch'
 const LQRatio = 0.01
 import moment from 'moment';
+
 /*
 export async function checkPoolAndOracleState(): Promise<AutomationState>{
   const maxTolerance = 0.05
@@ -89,8 +90,14 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_ETH_Tether_3000 = await getPoolInfo(
   CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
+
+  const poolInfo_ETH_Tether_10000 = await getPoolInfo(
+    CurrentConfig.tokensETHTether.token0,
+    CurrentConfig.tokensETHTether.token1,
+    FeeAmount.HIGH,
+    provider)
 
   const poolInfo_USDC_ETH_500 = await getPoolInfo(
   CurrentConfig.tokensUSDCETH.token0,
@@ -101,7 +108,7 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_USDC_ETH_3000 = await getPoolInfo(
   CurrentConfig.tokensUSDCETH.token0,
   CurrentConfig.tokensUSDCETH.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
 
   const poolInfo_Dai_ETH_500 = await getPoolInfo(
@@ -113,13 +120,15 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_Dai_ETH_3000 = await getPoolInfo(
   CurrentConfig.tokensDaiETH.token0,
   CurrentConfig.tokensDaiETH.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
 
   const price_ETH_Tether_500 = tickToPriceRealWorld(poolInfo_ETH_Tether_500.tick, CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1)
   const price_ETH_Tether_3000 = tickToPriceRealWorld(poolInfo_ETH_Tether_3000.tick, CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1)
+  const price_ETH_Tether_10000 = tickToPriceRealWorld(poolInfo_ETH_Tether_10000.tick, CurrentConfig.tokensETHTether.token0,
+    CurrentConfig.tokensETHTether.token1)
   
   const price_USDC_ETH_500 = 1/tickToPriceRealWorld(poolInfo_USDC_ETH_500.tick, CurrentConfig.tokensUSDCETH.token0,
   CurrentConfig.tokensUSDCETH.token1)
@@ -133,6 +142,7 @@ async function getUniswapV3AndV2Price(): Promise<number>{
 
   console.log(`price_ETH_Tether_500: ${price_ETH_Tether_500.toFixed(2)}`)
   console.log(`price_ETH_Tether_3000: ${price_ETH_Tether_3000.toFixed(2)}`)
+  console.log(`price_ETH_Tether_10000: ${price_ETH_Tether_10000.toFixed(2)}`)
   console.log(`price_USDC_ETH_500: ${price_USDC_ETH_500.toFixed(2)}`)
   console.log(`price_USDC_ETH_3000: ${price_USDC_ETH_3000.toFixed(2)}`)
   console.log(`price_Dai_ETH_500: ${price_Dai_ETH_500.toFixed(2)}`)
