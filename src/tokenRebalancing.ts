@@ -17,7 +17,7 @@ export interface tokenBalancingInfo {
 // TO DO:
 //    remain some ETH for gas fee
 export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wallet,token0: Token,token1: Token,poolFee: FeeAmount,leftRange: number, rightRange: number
-){
+): Promise<TransactionState>{
     const walletAddress = wallet.address
     const poolInfo = await getPoolInfo(token0,token1,poolFee,provider)   
 
@@ -26,22 +26,23 @@ export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wall
     //console.log(`before trade: ${token0Amount}`);
     //console.log(`before trade: ${token1Amount}`);
     const swapInfo = await constructRebalancingAsymmetry(token0Amount, token0.decimals, token1Amount, token1.decimals, leftRange, rightRange, poolInfo)
-    if(swapInfo.swap0for1)
-      await rebalancing(token0, token1, swapInfo.swapAmount, provider, wallet)
-    else
-      await rebalancing(token1, token0, swapInfo.swapAmount, provider, wallet)
+    let rebalancingResult
+    if(swapInfo.swap0for1){
+      rebalancingResult = await rebalancing(token0, token1, swapInfo.swapAmount, provider, wallet)
+    }else{
+      rebalancingResult = await rebalancing(token1, token0, swapInfo.swapAmount, provider, wallet)
+    }
+    if(rebalancingResult == TransactionState.Failed) {
+      return TransactionState.Failed
+    }
     console.log()
-    const token0AmountAF = await getERC20Balance(provider,walletAddress,token0.address)
+    const token0AmountAF = await getERC20Balance(provider, walletAddress,token0.address)
     const token1AmountAF = await getERC20Balance(provider, walletAddress,token1.address)
-    console.log('---------------Token0 & Token1 before deposit-------------------------')
+    console.log('---------------Token0 & Token1 after deposit-------------------------')
     console.log(`Token0 balance: ${token0AmountAF}`);
     console.log(`Token1 balance: ${token1AmountAF}`);
     console.log('---------------------------------------------')
-    //const token0AmountA = await getERC20Balance(provider, walletAddress,token0.address)
-    //const token1AmountA = await getERC20Balance(provider, walletAddress,token1.address)
-    //console.log(`after trade: ${token0AmountA}`);
-    //console.log(`after trade: ${token1AmountA}`);
-    //console.log()            
+    return rebalancingResult
     //const positinID = await mintPosition(token0,token1, poolFee,range,provider,wallet);
         // need to handle tx fail
     //console.log(`minted positio ID: ${positinID}`);
@@ -96,12 +97,14 @@ export async function constructRebalancingAsymmetry( amount0: number, decimal0:n
 }
 
 // execute token swap according to the result of constructRebalancingAsymmetry
-async function rebalancing(token0: Token, token1: Token, swapAmount: number,provider: BaseProvider,wallet: ethers.Wallet) : Promise<TransactionState>{
+async function rebalancing(token0: Token, token1: Token, swapAmount: number,provider: BaseProvider,wallet: ethers.Wallet): Promise<TransactionState>{
   try {
     const uncheckedTrade = await createTrade(swapAmount, token0, token1, FeeAmount.LOW, provider)
     const swapOutput = await executeTrade(uncheckedTrade, token0, provider, wallet)
-        // need to handle tx fail
-    //console.log(`swapOutput: ${swapOutput}`);
+    if(swapOutput == TransactionState.Failed) {
+      console.log('swap failed when rebalancing tokens, please chack out the reason')
+    }
+    // need to handle tx fail
     return swapOutput;
   } catch (e) {
     console.error(e)

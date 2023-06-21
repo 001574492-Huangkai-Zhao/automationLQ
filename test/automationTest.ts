@@ -175,10 +175,10 @@ async function AutoRedeemCVTest() {
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(10, provider,wallet)
-            // need to handle tx fail
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee,tickLower,tickUpper)
+    // need to handle tx fail
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee,tickLower,tickUpper)
     const positinID = await mintPosition(token0,token1, poolFee, tickLower,tickUpper, provider,wallet);
-        // need to handle tx fail
+    // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
     const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
