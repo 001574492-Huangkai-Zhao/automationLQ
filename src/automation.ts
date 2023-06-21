@@ -107,7 +107,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
       }
     }
 
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
     const positinID = await mintPosition(token0,token1, poolFee, leftRange, rightRange, provider,wallet);
  
     // need to handle tx fail
@@ -151,7 +151,7 @@ export async function AutoDepositAG(positionRange:number, provider: BaseProvider
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
     
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_AG)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee, currentAutomationInfo.CURRENT_LQ_RANGE_LOWER_AG)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange,provider,wallet);
         // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
@@ -181,7 +181,7 @@ export async function AutoDepositInitial(provider: BaseProvider, walletCV: ether
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
             // need to handle tx fail
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee, positionRange)
     const positinID = await mintPosition(token0,token1, poolFee, positionRange, provider, wallet);
         // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);

@@ -15,7 +15,7 @@ export async function addLQTest(leftRange: number,rightRange: number) {
     const poolFee = FeeAmount.LOW
     const receipt = await swapWETH(100, provider,wallet)
             // need to handle tx fail
-    await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
     const positinID = await mintPosition(token0,token1, poolFee, leftRange,rightRange,provider,wallet);
 
     console.log(`minted positio ID: ${positinID}`);
