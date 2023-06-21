@@ -44,7 +44,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   if(currentTick > tickUpper) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
         // need to handle tx fail
-    if(!HandleTXFail(redeemRes,currentAutomationInfo,wallet))
+    if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
     {
       console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
       return
@@ -58,7 +58,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   } else if(currentTick < tickLower) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
         // need to handle tx fail
-    if(!HandleTXFail(redeemRes,currentAutomationInfo,wallet))
+    if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
     {
       console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
       return
@@ -100,7 +100,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
       const withdrawAmount = ETHMarginForGasFee - ETHBalance
       const withdrawRes = await withdrawWETH(withdrawAmount, provider, wallet)
       // need to handle tx fail
-      if(!HandleTXFail(withdrawRes,currentAutomationInfo,wallet))
+      if(!await HandleTXFail(withdrawRes,currentAutomationInfo,wallet))
       {
         console.log('Deposit fail!!!!!!!!!!!!!!!!!! Take Action now')
         return
@@ -108,13 +108,19 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
     }
 
     const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
+    
+    if(!await HandleTXFail(rebalanceTokenResult,currentAutomationInfo,wallet))
+    {
+      console.log('Token rebalancing fail!!!!!!!!!!!!!!!!!! Take Action now')
+      return
+    }
     const positinID = await mintPosition(token0,token1, poolFee, leftRange, rightRange, provider,wallet);
  
-    // need to handle tx fail
     console.log(`minted positio ID: ${positinID}`);
     console.log()
+    //Mint TX succeed when position ID is not 1 or -1
     if(positinID==-1||positinID==1){
-      currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Automation_Paused_RevertedTX
+      await HandleTXFail(TransactionState.Failed,currentAutomationInfo,wallet)
       return
     }
 
