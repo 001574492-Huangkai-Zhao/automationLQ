@@ -6,10 +6,10 @@ import {TransactionState,} from '../libs/providers'
 import {FeeAmount,} from '@uniswap/v3-sdk'
 import {mintPosition,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens} from './tokenRebalancing'
-import {AutomationState, ETHMarginForGasFee,} from './automationConstants'
+import {AutomationState, ETHMarginForGasFee} from './automationConstants'
 import { BaseProvider } from '@ethersproject/providers'
 import { ethers} from 'ethers'
-import{readAutomationStats,writeAutomationStats} from './RWAutomationState'
+import{readAutomationStats,writeAutomationStats,AutomationInfo} from './RWAutomationState'
 
 export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet){
   let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
@@ -28,18 +28,27 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   console.log(`position tickLower: ${tickLower}`)
   console.log(`position tickUpper: ${tickUpper}`)
   console.log(`position LQ: ${parseInt(posi_info.liquidity.toString())}`)
-  
-  if(positionID==1)
+  //No position Needs to be removed
+  if(positionID==1||posi_info.liquidity.eq(0))
+  {
+    return
+  }
+  //Pause program when previous TX failed
+  if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV==AutomationState.Automation_Paused_PendingTX
+    ||currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV==AutomationState.Automation_Paused_RevertedTX
+    )
   {
     return
   }
 
-  if(posi_info.liquidity.eq(0)) {
-    automationState = AutomationState.NoAction_Required
-  }
   if(currentTick > tickUpper) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
         // need to handle tx fail
+    if(!HandleTXFail(redeemRes,currentAutomationInfo,wallet))
+    {
+      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
+      return
+    }
     console.log("current price hit Upper range, redeem as Tether")
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
@@ -49,6 +58,11 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   } else if(currentTick < tickLower) {
     redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
         // need to handle tx fail
+    if(!HandleTXFail(redeemRes,currentAutomationInfo,wallet))
+    {
+      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
+      return
+    }
     console.log("current price hit lower range, redeem as ETH")
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
@@ -84,8 +98,13 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
     // so the ETH balance will bigger than ETHMarginForGasFee to avoid frequent withdraw
     if(ETHBalance < ETHMarginForGasFee ){
       const withdrawAmount = ETHMarginForGasFee - ETHBalance
-      await withdrawWETH(withdrawAmount, provider, wallet)
-              // need to handle tx fail
+      const withdrawRes = await withdrawWETH(withdrawAmount, provider, wallet)
+      // need to handle tx fail
+      if(!HandleTXFail(withdrawRes,currentAutomationInfo,wallet))
+      {
+        console.log('Deposit fail!!!!!!!!!!!!!!!!!! Take Action now')
+        return
+      }
     }
 
     await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
@@ -112,6 +131,16 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
     //console.log(`after adding liquidity: ${token0Amount_LQ}`);
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
     await writeAutomationStats(currentAutomationInfo,wallet.address.substring(0,5))
+}
+
+//Change the AutoMation stats when TX failed
+async function HandleTXFail(TX: TransactionState,automationInfo:AutomationInfo,wallet:ethers.Wallet): Promise<boolean>{
+  if(TX!=TransactionState.Sent){
+    automationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Automation_Paused_RevertedTX
+    await writeAutomationStats(automationInfo,wallet.address.substring(0,5))
+    return false
+  }
+  return true
 }
 
 

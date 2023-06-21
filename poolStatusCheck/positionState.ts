@@ -1,12 +1,12 @@
 import{getPoolBalance, getPoolInfo, getTickInfo} from '../libs/pool'
 import { CurrentConfig } from '../tokens.config'
-import {getForkingChainProvider,createForkingChainWallet} from '../libs/providers'
+import {getForkingChainProvider,createForkingChainWallet,getMainNetProvider} from '../libs/providers'
 import {FeeAmount,} from '@uniswap/v3-sdk'
 import {tickToPriceRealWorld} from '../libs/positions'
 import { ethers } from 'ethers'
 
 async function queryPoolState() {
-    const provider= getForkingChainProvider()
+    const provider= getMainNetProvider()
     const token0 = CurrentConfig.tokensETHTether.token0
     const token1 = CurrentConfig.tokensETHTether.token1
     const poolFee = FeeAmount.LOW
@@ -24,7 +24,7 @@ async function queryPoolState() {
 }
 
 async function queryTickstate(tick:number) {
-  const provider= getForkingChainProvider()
+  const provider= getMainNetProvider()
   const wallet = createForkingChainWallet()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
@@ -49,7 +49,7 @@ async function queryTickstate(tick:number) {
 }
 
 async function queryCurrentTickstate() {
-  const provider= getForkingChainProvider()
+  const provider= getMainNetProvider()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
   const poolFee = FeeAmount.LOW
@@ -79,7 +79,7 @@ async function queryCurrentTickstate() {
 }
 
 async function queryLockBalance() {
-  const provider= getForkingChainProvider()
+  const provider= getMainNetProvider()
   const wallet = createForkingChainWallet()
   const token0 = CurrentConfig.tokensETHTether.token0
   const token1 = CurrentConfig.tokensETHTether.token1
