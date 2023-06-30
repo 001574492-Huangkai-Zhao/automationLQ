@@ -6,7 +6,7 @@ import {TransactionState,} from '../libs/providers'
 import {FeeAmount,} from '@uniswap/v3-sdk'
 import {mintPosition,getPositionInfo,removeLiquidity} from '../libs/positions'
 import { rebalanceTokens} from './tokenRebalancing'
-import {AutomationState, ETHMarginForGasFee} from './automationConstants'
+import {AutomationState, ETHMarginForGasFee,FeeLevel} from './automationConstants'
 import { BaseProvider } from '@ethersproject/providers'
 import { ethers} from 'ethers'
 import{readAutomationStats,writeAutomationStats,AutomationInfo} from './RWAutomationState'
@@ -14,9 +14,56 @@ import{readAutomationStats,writeAutomationStats,AutomationInfo} from './RWAutoma
 export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet){
   let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
   let positionID = currentAutomationInfo.CONSERVATIVE_POSITION_ID
-  const token0 = CurrentConfig.tokensETHTether.token0
-  const token1 = CurrentConfig.tokensETHTether.token1
-  const poolFee = FeeAmount.LOW
+  let token0
+  let token1
+  let poolFee
+  CurrentConfig.tokensETHTether.token0
+  switch(currentAutomationInfo.TOKEN_PAIR_CV){
+    case 'ETHTether':{
+      token0 = CurrentConfig.tokensETHTether.token0
+      token1 = CurrentConfig.tokensETHTether.token1
+      break
+    }
+    case 'USDCETH':{
+      token0 = CurrentConfig.tokensUSDCETH.token0
+      token1 = CurrentConfig.tokensUSDCETH.token1
+      break
+    }
+    case 'DaiETH':{
+      token0 = CurrentConfig.tokensDaiETH.token0
+      token1 = CurrentConfig.tokensDaiETH.token1
+      break
+    }
+    case 'USDCTether':{
+      token0 = CurrentConfig.tokensUSDCTether.token0
+      token1 = CurrentConfig.tokensUSDCTether.token1
+      break
+    }
+    default: {
+      token0 = CurrentConfig.tokensETHTether.token0
+      token1 = CurrentConfig.tokensETHTether.token1
+      break
+    }
+  }
+  
+  switch(currentAutomationInfo.FEE_LEVEL_CV){
+    case 'HIGH':{
+      poolFee = FeeAmount.HIGH
+      break
+    }
+    case 'LOW':{
+      poolFee = FeeAmount.LOW
+      break
+    }
+    case 'MEDIUM':{
+      poolFee = FeeAmount.MEDIUM
+      break
+    }
+    default: {
+      poolFee = FeeAmount.LOW
+      break
+    }
+  }
   const poolInfo = await getPoolInfo(token0,token1, poolFee,provider)
   const currentTick = poolInfo.tick
 
@@ -42,7 +89,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   }
 
   if(currentTick > tickUpper) {
-    redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
+    redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
         // need to handle tx fail
     if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
     {
@@ -56,7 +103,7 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
     currentAutomationInfo.CONSERVATIVE_POSITION_ID = 1
     currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = posi_info.liquidity._hex
   } else if(currentTick < tickLower) {
-    redeemRes = await removeLiquidity(token0,token1, FeeAmount.LOW,provider,wallet, positionID)
+    redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
         // need to handle tx fail
     if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
     {
@@ -86,9 +133,59 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
 
 export async function AutoDepositCV(leftRange:number, rightRange:number,provider: BaseProvider,wallet: ethers.Wallet){
     let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
-    const token0 = CurrentConfig.tokensETHTether.token0
-    const token1 = CurrentConfig.tokensETHTether.token1
-    const poolFee = FeeAmount.LOW
+
+    let token0
+    let token1
+    let poolFee
+    CurrentConfig.tokensETHTether.token0
+    switch(currentAutomationInfo.TOKEN_PAIR_CV){
+      case 'ETHTether':{
+        token0 = CurrentConfig.tokensETHTether.token0
+        token1 = CurrentConfig.tokensETHTether.token1
+        break
+      }
+      case 'USDCETH':{
+        token0 = CurrentConfig.tokensUSDCETH.token0
+        token1 = CurrentConfig.tokensUSDCETH.token1
+        break
+      }
+      case 'DaiETH':{
+        token0 = CurrentConfig.tokensDaiETH.token0
+        token1 = CurrentConfig.tokensDaiETH.token1
+        break
+      }
+      case 'USDCTether':{
+        token0 = CurrentConfig.tokensUSDCTether.token0
+        token1 = CurrentConfig.tokensUSDCTether.token1
+        break
+      }
+      default: {
+        token0 = CurrentConfig.tokensETHTether.token0
+        token1 = CurrentConfig.tokensETHTether.token1
+        break
+      }
+    }
+    
+    switch(currentAutomationInfo.FEE_LEVEL_CV){
+      case 'HIGH':{
+        poolFee = FeeAmount.HIGH
+        break
+      }
+      case 'LOW':{
+        poolFee = FeeAmount.LOW
+        break
+      }
+      case 'MEDIUM':{
+        poolFee = FeeAmount.MEDIUM
+        break
+      }
+      default: {
+        poolFee = FeeAmount.LOW
+        break
+      }
+    }
+
+
     if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV != AutomationState.Executing_DepositLQ ){
         return 
       }
@@ -107,7 +204,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
       }
     }
 
-    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1, poolFee,leftRange, rightRange)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1,leftRange, rightRange)
     
     if(!await HandleTXFail(rebalanceTokenResult,currentAutomationInfo,wallet))
     {

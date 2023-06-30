@@ -30,5 +30,14 @@ export enum StrategyType {
     Conservative  = 'Conservative',
     Aggressive = 'Aggressive',
   }
-  
-  
+  export enum FeeLevel {
+    HIGH  = 'HIGH',
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM'
+  }
+  export enum TokenPair {
+    ETHTether  = 'ETHTether',
+    USDCETH = 'USDCETH',
+    DaiETH = 'DaiETH',
+    USDCTether = 'USDCTether'
+  }

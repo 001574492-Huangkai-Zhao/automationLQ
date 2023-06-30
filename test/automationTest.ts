@@ -6,8 +6,8 @@ import {FeeAmount,} from '@uniswap/v3-sdk'
 import {getPositionInfo, mintPosition, tickToPriceRealWorld} from '../libs/positions'
 import { rebalanceTokens} from '../src/tokenRebalancing'
 import {AutoRedeemCV,AutoDepositCV} from '../src/automation'
-import { readAutomationStats,writeAutomationStats,InitializeAutomationStats} from '../src/RWAutomationState'
-import {AutomationState} from '../src/automationConstants'
+import { readAutomationStats,writeAutomationStats,InitializeAutomationStatsCV} from '../src/RWAutomationState'
+import {AutomationState,FeeLevel,TokenPair} from '../src/automationConstants'
 import { getPoolInfo } from '../libs/pool'
 import {toReadableAmount} from '../libs/utils'
 
@@ -25,7 +25,7 @@ async function AutoRedeemCVTest() {
     //construct position for testing
     let receipt = await swapWETH(100, provider,wallet)
             // need to handle tx fail
-    InitializeAutomationStats(wallet.address.substring(0,5))
+    InitializeAutomationStatsCV(wallet.address.substring(0,5),TokenPair.ETHTether,FeeLevel.LOW)
     let currentAutomationInfo = await readAutomationStats(wallet.address.substring(0,5))
     currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Executing_DepositLQ
     await writeAutomationStats(currentAutomationInfo,wallet.address.substring(0,5))
@@ -84,7 +84,7 @@ async function AutoRedeemCVTest() {
     //construct position for testing
     receipt = await swapWETH(100, provider,wallet1)
             // need to handle tx fail
-    InitializeAutomationStats(wallet1.address.substring(0,5))
+    InitializeAutomationStatsCV(wallet.address.substring(0,5),TokenPair.ETHTether,FeeLevel.LOW)
     currentAutomationInfo = await readAutomationStats(wallet1.address.substring(0,5))
     currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV = AutomationState.Executing_DepositLQ
     await writeAutomationStats(currentAutomationInfo,wallet1.address.substring(0,5))
@@ -141,7 +141,7 @@ async function AutoRedeemCVTest() {
     const provider= getForkingChainProvider()
     const wallet = createForkingChainWallet()
     //create a clean Automation stats
-    await InitializeAutomationStats(wallet.address.substring(0,5))
+    InitializeAutomationStatsCV(wallet.address.substring(0,5),TokenPair.ETHTether,FeeLevel.LOW)
     let AutomationStats = await readAutomationStats(wallet.address.substring(0,5))
     //pausing executing deposit
     AutomationStats.CURRENT_AUTOMATION_STATE_CV = AutomationState.Waiting_DepositLQ
