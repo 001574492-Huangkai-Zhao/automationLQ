@@ -15,8 +15,8 @@ export interface tokenBalancingInfo {
   swapAmount: number
 }
 // TO DO:
-//    remain some ETH for gas fee
-export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wallet,token0: Token,token1: Token,poolFee: FeeAmount,leftRange: number, rightRange: number
+//    Smart swap for least cost
+export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wallet,token0: Token,token1: Token,leftRange: number, rightRange: number
 ): Promise<TransactionState>{
     const walletAddress = wallet.address
     const poolInfo = await getPoolInfo(token0,token1,poolFee,provider)   
