@@ -39,7 +39,7 @@ import { BaseProvider } from '@ethersproject/providers'
 
 export type TokenTrade = Trade<Token, Token, TradeType>
 
-// Trading Functions
+// Trading Functions for swap tokens
 export async function createTrade(amountIn:number,tokenIn: Token,tokenOut: Token, poolFee: FeeAmount,provider: BaseProvider): Promise<TokenTrade> {
   const poolInfo = await getPoolInfo(tokenIn,tokenOut,poolFee,provider)
   //console.log(`amount in: ${amountIn}`);
@@ -79,7 +79,8 @@ export async function createTrade(amountIn:number,tokenIn: Token,tokenOut: Token
 
   return uncheckedTrade
 }
-
+// TO DO:
+//    do we need to make slippageTolerance customizable?
 export async function executeTrade(
   trade: TokenTrade,
   tokenIn: Token,
@@ -101,7 +102,7 @@ export async function executeTrade(
   }
   
   const options: SwapOptions = {
-    slippageTolerance: new Percent(5000, 10_000), // 50 bips, or 0.50%
+    slippageTolerance: new Percent(100, 10_000), // 100 bips, or 1%
     deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from the current Unix time
     recipient: walletAddress,
   }
@@ -127,8 +128,7 @@ export async function executeTrade(
 
 // Helper Quoting and Pool Functions
 
-export async function getOutputQuote(route: Route<Currency, Currency>,amountIn: number,tokenIn: Token,provider: BaseProvider) {
-
+export async function getOutputQuote(route: Route<Currency, Currency>, amountIn: number, tokenIn: Token, provider: BaseProvider) {
   if (!provider) {
     throw new Error('Provider required to get pool state')
   }
@@ -184,7 +184,7 @@ export async function getTokenTransferApproval(
       tokenAmountToApprove
     )
 
-    const res = await  sendTxAndGetReceipt(
+    const res = await sendTxAndGetReceipt(
       {
         ...transaction,
         from: address,

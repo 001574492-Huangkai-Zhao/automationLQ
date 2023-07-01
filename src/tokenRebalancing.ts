@@ -16,10 +16,10 @@ export interface tokenBalancingInfo {
 }
 // TO DO:
 //    Smart swap for least cost
-export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wallet,token0: Token,token1: Token,leftRange: number, rightRange: number
+export async function rebalanceTokens(provider: BaseProvider, wallet: ethers.Wallet, token0: Token, token1: Token, leftRange: number, rightRange: number
 ): Promise<TransactionState>{
     const walletAddress = wallet.address
-    const poolInfo = await getPoolInfo(token0,token1,poolFee,provider)   
+    const poolInfo = await getPoolInfo(token0,token1,FeeAmount.LOW,provider)   
 
     const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
     const token1Amount = await getERC20Balance(provider, walletAddress,token1.address)
@@ -39,8 +39,8 @@ export async function rebalanceTokens(provider: BaseProvider,wallet: ethers.Wall
     const token0AmountAF = await getERC20Balance(provider, walletAddress,token0.address)
     const token1AmountAF = await getERC20Balance(provider, walletAddress,token1.address)
     console.log('---------------Token0 & Token1 after deposit-------------------------')
-    console.log(`Token0 balance: ${token0AmountAF}`);
-    console.log(`Token1 balance: ${token1AmountAF}`);
+    console.log(`Token0 balance after rebalancing: ${token0AmountAF}`);
+    console.log(`Token1 balance after rebalancing: ${token1AmountAF}`);
     console.log('---------------------------------------------')
     return rebalancingResult
     //const positinID = await mintPosition(token0,token1, poolFee,range,provider,wallet);
