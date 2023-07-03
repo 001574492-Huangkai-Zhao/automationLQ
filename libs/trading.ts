@@ -102,7 +102,7 @@ export async function executeTrade(
   }
   
   const options: SwapOptions = {
-    slippageTolerance: new Percent(100, 10_000), // 100 bips, or 1%
+    slippageTolerance: new Percent(5000, 10_000), // 100 bips, or 1%
     deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from the current Unix time
     recipient: walletAddress,
   }

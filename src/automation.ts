@@ -68,49 +68,45 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
   const currentTick = poolInfo.tick
 
   let automationState
-  let redeemRes = TransactionState.Sent
+
   let posi_info = await getPositionInfo(positionID,provider)
   const tickLower = posi_info.tickLower
   const tickUpper = posi_info.tickUpper
-  console.log(`position tickLower: ${tickLower}`)
-  console.log(`position tickUpper: ${tickUpper}`)
+  //console.log(`position tickLower: ${tickLower}`)
+  //console.log(`position tickUpper: ${tickUpper}`)
   console.log(`position LQ: ${parseInt(posi_info.liquidity.toString())}`)
   //No position Needs to be removed
-  if(positionID==1||posi_info.liquidity.eq(0))
-  {
-    return
+  if(positionID==1||posi_info.liquidity.eq(0)){
+    return 
   }
   //Pause program when previous TX failed
   if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV==AutomationState.Automation_Paused_PendingTX
-    ||currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV==AutomationState.Automation_Paused_RevertedTX
-    )
-  {
+    ||currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV==AutomationState.Automation_Paused_RevertedTX){
     return
   }
-
+  
   if(currentTick > tickUpper) {
-    redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
-        // need to handle tx fail
-    if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
-    {
-      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
-      return
-    }
     console.log("current price hit Upper range, redeem as Tether")
+    let redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
+    if(redeemRes==TransactionState.Failed) {
+      await HandleTXFail(redeemRes,currentAutomationInfo,wallet);
+      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
+      return 
+    }
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
     automationState = AutomationState.Price_Hit_TickUpper
     currentAutomationInfo.CONSERVATIVE_POSITION_ID = 1
     currentAutomationInfo.CURRENT_LQ_AMOUNT_CV = posi_info.liquidity._hex
   } else if(currentTick < tickLower) {
-    redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
-        // need to handle tx fail
-    if(!await HandleTXFail(redeemRes,currentAutomationInfo,wallet))
-    {
-      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
-      return
-    }
     console.log("current price hit lower range, redeem as ETH")
+    
+    let redeemRes = await removeLiquidity(token0,token1, poolFee,provider,wallet, positionID)
+    if(redeemRes==TransactionState.Failed) {
+      await HandleTXFail(redeemRes,currentAutomationInfo,wallet);
+      console.log('Redeem fail!!!!!!!!!!!!!!!!!! Take Action now')
+      return 
+    }
     posi_info = await getPositionInfo(positionID,provider)
     console.log(`position LQ after redeem: ${parseInt(posi_info.liquidity.toString())}`)
     automationState = AutomationState.Price_Hit_TickLower
@@ -120,14 +116,12 @@ export async function AutoRedeemCV(provider: BaseProvider,wallet: ethers.Wallet)
     console.log("current price stay in range of this position, no need for redeem!!!!!!!!")
     automationState = AutomationState.Price_In_Range
   }
-  console.log()
 
-  const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
-  const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
-  console.log(`after redeem: ${token0Amount_LQ}`);
-  console.log(`after redeem: ${token1Amount_LQ}`);
+  //const token0Amount_LQ = await getERC20Balance(provider,wallet.address,token0.address)
+  //const token1Amount_LQ = await getERC20Balance(provider, wallet.address,token1.address)
+  //console.log(`after redeem: ${token0Amount_LQ}`);
+  //console.log(`after redeem: ${token1Amount_LQ}`);
   currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV=automationState
-
   await writeAutomationStats(currentAutomationInfo,wallet.address.substring(0,5))
 }
 
@@ -187,8 +181,8 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
 
 
     if(currentAutomationInfo.CURRENT_AUTOMATION_STATE_CV != AutomationState.Executing_DepositLQ ){
-        return 
-      }
+      return 
+    }
     const ETHBalance = Number(await provider.getBalance(wallet.address))
     // withdraw WETH to ETH for gas fee, when ETH balance is below the ETHMarginForGasFee
     // withdraw amount is ETHMarginForGasFee 
@@ -197,8 +191,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
       const withdrawAmount = ETHMarginForGasFee - ETHBalance
       const withdrawRes = await withdrawWETH(withdrawAmount, provider, wallet)
       // need to handle tx fail
-      if(!await HandleTXFail(withdrawRes,currentAutomationInfo,wallet))
-      {
+      if(!await HandleTXFail(withdrawRes,currentAutomationInfo,wallet)){
         console.log('Deposit fail!!!!!!!!!!!!!!!!!! Take Action now')
         return
       }
@@ -206,8 +199,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
 
     const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1,leftRange, rightRange)
     
-    if(!await HandleTXFail(rebalanceTokenResult,currentAutomationInfo,wallet))
-    {
+    if(!await HandleTXFail(rebalanceTokenResult,currentAutomationInfo,wallet)){
       console.log('Token rebalancing fail!!!!!!!!!!!!!!!!!! Take Action now')
       return
     }
