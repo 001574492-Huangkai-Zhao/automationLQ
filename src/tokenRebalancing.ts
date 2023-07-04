@@ -21,10 +21,10 @@ export async function rebalanceTokens(provider: BaseProvider, wallet: ethers.Wal
     const walletAddress = wallet.address
     const poolInfo = await getPoolInfo(token0,token1,FeeAmount.LOW,provider)   
 
-    const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
+    const token0Amount = await getERC20Balance(provider, walletAddress,token0.address)
     const token1Amount = await getERC20Balance(provider, walletAddress,token1.address)
-    //console.log(`before trade: ${token0Amount}`);
-    //console.log(`before trade: ${token1Amount}`);
+    console.log(`before trade: ${token0Amount}`);
+    console.log(`before trade: ${token1Amount}`);
     const swapInfo = await constructRebalancingAsymmetry(token0Amount, token0.decimals, token1Amount, token1.decimals, leftRange, rightRange, poolInfo)
     let rebalancingResult
     if(swapInfo.swap0for1){
@@ -84,13 +84,13 @@ export async function constructRebalancingAsymmetry( amount0: number, decimal0:n
   if(swap0 > 0) {
     swap0for1=true
     //swapAmount = swap0*Math.pow(10, -decimal0)
-    swapAmount = swap0*Math.pow(10, -decimal0);
+    swapAmount = Math.trunc(swap0*Math.pow(10, -decimal0));
     console.log(`going to swap in WETH amount: ${swapAmount}`);
   } else {
     swap0for1=false
     //const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
-    swapAmount = swap1*Math.pow(10, -decimal1);
+    swapAmount = Math.trunc(swap1*Math.pow(10, -decimal1))
     console.log(`going to swap in TETHER amount: ${swapAmount}`);
   }
  return{swap0for1, swapAmount}

@@ -44,7 +44,13 @@ export const DAI_TOKEN = new Token(
   'DAI',
   'Dai Stablecoin'
 )
-
+export const WBTC = new Token(
+  SupportedChainId.MAINNET,
+  '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  8,
+  'WBTC',
+  'Wrapped BTC'
+)
 // Transactions
 
 export const MAX_FEE_PER_GAS = '1000000000000'

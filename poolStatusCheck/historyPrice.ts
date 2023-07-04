@@ -34,7 +34,7 @@ function writeToFile(arr: Array<any>, feeLevel: string){
     let dataToCSV = []
     let i = 0;
     while (i < arr.length) {
-        dataToCSV.push([feeLevel, arr[i].periodStartUnix, (1/arr[i].close).toFixed(0)]);
+        dataToCSV.push([ arr[i].periodStartUnix, " ",(1/arr[i].close).toFixed(0)]);
         i++;
     }
     dataToCSV.push([])
@@ -43,7 +43,7 @@ function writeToFile(arr: Array<any>, feeLevel: string){
 
 
 async function queryPriceTest(){
-    await queryTest("0x11b815efb8f581194ae79006d24e0d814b7697f6")
+    await queryTest("0x99ac8ca7087fa4a2a1fb6357269965a2014abc35")
     //await queryTest("0x4e68ccd3e89f51c3074ca5072bbac773960dfa36")
     //await queryTest("0xc5af84701f98fa483ece78af83f11b6c38aca71d")
 

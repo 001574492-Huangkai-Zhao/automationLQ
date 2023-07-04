@@ -1,6 +1,6 @@
 import { Token } from '@uniswap/sdk-core'
 import { FeeAmount } from '@uniswap/v3-sdk'
-import { DAI_TOKEN, USDC_TOKEN,TETHER_TOKEN,WETH_TOKEN } from './libs/constants'
+import { DAI_TOKEN, USDC_TOKEN,TETHER_TOKEN,WETH_TOKEN, WBTC } from './libs/constants'
 
 // Sets if the example should run locally or on chain
 export enum Environment {
@@ -48,6 +48,11 @@ export interface NetworkConfig {
     poolFee: FeeAmount
   }
   tokensUSDCTether: {
+    token0: Token
+    token1: Token
+    poolFee: FeeAmount
+  }
+  tokensWBTCUSDC: {
     token0: Token
     token1: Token
     poolFee: FeeAmount
@@ -100,6 +105,11 @@ export const CurrentConfig: NetworkConfig = {
   tokensUSDCTether: {
     token0: USDC_TOKEN,
     token1: TETHER_TOKEN,
+    poolFee: FeeAmount.LOW,
+  },
+  tokensWBTCUSDC: {
+    token0: WBTC,
+    token1: USDC_TOKEN,
     poolFee: FeeAmount.LOW,
   }
 }
