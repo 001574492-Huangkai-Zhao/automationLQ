@@ -197,7 +197,7 @@ export async function AutoDepositCV(leftRange:number, rightRange:number,provider
       }
     }
 
-    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1,leftRange, rightRange)
+    const rebalanceTokenResult = await rebalanceTokens(provider, wallet, token0, token1,leftRange, rightRange,FeeAmount.LOW)
     
     if(!await HandleTXFail(rebalanceTokenResult,currentAutomationInfo,wallet)){
       console.log('Token rebalancing fail!!!!!!!!!!!!!!!!!! Take Action now')

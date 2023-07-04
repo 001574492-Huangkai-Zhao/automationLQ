@@ -8,7 +8,8 @@ import {FeeAmount} from '@uniswap/v3-sdk'
 import {sqrtPriceToTick, tickToSqrtPrice, tickToPrice} from '../libs/positions'
 import { BaseProvider } from '@ethersproject/providers'
 import {PoolInfo} from '../libs/pool'
-import { ETHMarginForGasFee } from './automationConstants'
+import { FeeLevel } from './automationConstants'
+
 
 export interface tokenBalancingInfo {
   swap0for1: boolean,
@@ -16,16 +17,16 @@ export interface tokenBalancingInfo {
 }
 // TO DO:
 //    Smart swap for least cost
-export async function rebalanceTokens(provider: BaseProvider, wallet: ethers.Wallet, token0: Token, token1: Token, leftRange: number, rightRange: number
+export async function rebalanceTokens(provider: BaseProvider, wallet: ethers.Wallet, 
+  token0: Token, token1: Token, leftRange: number, rightRange: number, feeLevel:FeeAmount
 ): Promise<TransactionState>{
     const walletAddress = wallet.address
-    const poolInfo = await getPoolInfo(token0,token1,FeeAmount.LOW,provider)   
 
     const token0Amount = await getERC20Balance(provider, walletAddress,token0.address)
     const token1Amount = await getERC20Balance(provider, walletAddress,token1.address)
     console.log(`before trade: ${token0Amount}`);
     console.log(`before trade: ${token1Amount}`);
-    const swapInfo = await constructRebalancingAsymmetry(token0Amount, token0.decimals, token1Amount, token1.decimals, leftRange, rightRange, poolInfo)
+    const swapInfo = await constructRebalancingAsymmetry(provider, token0Amount, token0, token1Amount, token1, leftRange, rightRange, feeLevel)
     let rebalancingResult
     if(swapInfo.swap0for1){
       rebalancingResult = await rebalancing(token0, token1, swapInfo.swapAmount, provider, wallet)
@@ -53,12 +54,16 @@ export async function rebalanceTokens(provider: BaseProvider, wallet: ethers.Wal
     //console.log(`after adding liquidity: ${token1Amount_LQ}`);
 }
 // calculate the swap amount
-export async function constructRebalancing( amount0: number, decimal0:number, amount1: number, decimal1:number, range: number,poolInfo:PoolInfo): Promise<tokenBalancingInfo>  {
-  return constructRebalancingAsymmetry(amount0, decimal0, amount1, decimal1, range, range, poolInfo)
+export async function constructRebalancing(provider: BaseProvider, amount0:number, token0:Token, amount1: number, token1:Token, 
+  range: number, feeLevel:FeeAmount): Promise<tokenBalancingInfo>  {
+  return constructRebalancingAsymmetry(provider, amount0, token0, amount1, token1, range, range, feeLevel)
 }
 // calculate the swap amount 
-export async function constructRebalancingAsymmetry( amount0: number, decimal0:number, amount1: number, decimal1:number, leftRange: number, rightRange: number, poolInfo:PoolInfo): Promise<tokenBalancingInfo>  {
-  
+export async function constructRebalancingAsymmetry(provider: BaseProvider, amount0:number, token0:Token, amount1: number, token1:Token, 
+  leftRange: number, rightRange: number, feeLevel:FeeAmount): Promise<tokenBalancingInfo>  {
+  const decimal0 = token0.decimals
+  const decimal1 = token1.decimals
+  const poolInfo = await getPoolInfo(token0,token1,feeLevel,provider)
   const poolTick = poolInfo.tick
   const poolPrice = tickToPrice(poolTick);
   const sqrtprice = Math.pow(poolPrice, 0.5);
@@ -86,13 +91,13 @@ export async function constructRebalancingAsymmetry( amount0: number, decimal0:n
     //swapAmount = swap0*Math.pow(10, -decimal0)
     //truncate amount to avoid 'fractional component exceeds decimals' error
     swapAmount = Math.trunc(swap0*Math.pow(10, -decimal0));
-    console.log(`going to swap in ${poolInfo.token0.name} amount: ${swapAmount}`);
+    console.log(`going to swap in ${token0.name} amount: ${swapAmount}`);
   } else {
     swap0for1=false
     //const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     swapAmount = Math.trunc(swap1*Math.pow(10, -decimal1))
-    console.log(`going to swap in ${poolInfo.token1.name} amount: ${swapAmount}`);
+    console.log(`going to swap in ${token1.name} amount: ${swapAmount}`);
   }
  return{swap0for1, swapAmount}
 }
