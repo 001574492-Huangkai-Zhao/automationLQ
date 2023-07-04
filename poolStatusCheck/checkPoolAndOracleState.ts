@@ -84,8 +84,14 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_ETH_Tether_3000 = await getPoolInfo(
   CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
+
+  const poolInfo_ETH_Tether_10000 = await getPoolInfo(
+    CurrentConfig.tokensETHTether.token0,
+    CurrentConfig.tokensETHTether.token1,
+    FeeAmount.HIGH,
+    provider)
 
   const poolInfo_USDC_ETH_500 = await getPoolInfo(
   CurrentConfig.tokensUSDCETH.token0,
@@ -96,7 +102,7 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_USDC_ETH_3000 = await getPoolInfo(
   CurrentConfig.tokensUSDCETH.token0,
   CurrentConfig.tokensUSDCETH.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
 
   const poolInfo_Dai_ETH_500 = await getPoolInfo(
@@ -108,14 +114,16 @@ async function getUniswapV3AndV2Price(): Promise<number>{
   const poolInfo_Dai_ETH_3000 = await getPoolInfo(
   CurrentConfig.tokensDaiETH.token0,
   CurrentConfig.tokensDaiETH.token1,
-  FeeAmount.HIGH,
+  FeeAmount.MEDIUM,
   provider)
 
   const price_ETH_Tether_500 = tickToPriceRealWorld(poolInfo_ETH_Tether_500.tick, CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1)
   const price_ETH_Tether_3000 = tickToPriceRealWorld(poolInfo_ETH_Tether_3000.tick, CurrentConfig.tokensETHTether.token0,
   CurrentConfig.tokensETHTether.token1)
-  
+  const price_ETH_Tether_10000 = tickToPriceRealWorld(poolInfo_ETH_Tether_10000.tick, CurrentConfig.tokensETHTether.token0,
+    CurrentConfig.tokensETHTether.token1)
+
   const price_USDC_ETH_500 = 1/tickToPriceRealWorld(poolInfo_USDC_ETH_500.tick, CurrentConfig.tokensUSDCETH.token0,
   CurrentConfig.tokensUSDCETH.token1)
   const price_USDC_ETH_3000 = 1/tickToPriceRealWorld(poolInfo_USDC_ETH_3000.tick, CurrentConfig.tokensUSDCETH.token0,
@@ -128,6 +136,7 @@ async function getUniswapV3AndV2Price(): Promise<number>{
 
   console.log(`price_ETH_Tether_500: ${price_ETH_Tether_500.toFixed(2)}`)
   console.log(`price_ETH_Tether_3000: ${price_ETH_Tether_3000.toFixed(2)}`)
+  console.log(`price_ETH_Tether_10000: ${price_ETH_Tether_10000.toFixed(2)}`)
   console.log(`price_USDC_ETH_500: ${price_USDC_ETH_500.toFixed(2)}`)
   console.log(`price_USDC_ETH_3000: ${price_USDC_ETH_3000.toFixed(2)}`)
   console.log(`price_Dai_ETH_500: ${price_Dai_ETH_500.toFixed(2)}`)
@@ -279,87 +288,7 @@ async function tickCalculator(
   console.log(`tickLower for input range: ${tickLower}`)
 }
 
-async function recover(
-  token0: Token,
-  token1: Token,
-  poolFee: FeeAmount
-){
-  const provider = getForkingChainProvider()
-  const wallet = createForkingChainWallet()
-  const walletAddress = wallet.address
 
-  const token0Amount = await getERC20Balance(provider,walletAddress,token0.address)
-  const token1Amount = await getERC20Balance(provider,walletAddress,token1.address)
-  const token1AmountToSwapIn = token1Amount*0.96
-  console.log(`before trade: ${token1Amount}`);
-
-  const uncheckedTrade = await createTrade(+token1AmountToSwapIn.toFixed(0)/Math.pow(10,token1.decimals), token1, token0, FeeAmount.LOW, provider)
-  const swapOutput = await executeTrade(uncheckedTrade, token1, provider, wallet)
-      // need to handle tx fail
-  const poolInfo = await getPoolInfo(token0,token1,poolFee,provider)
-  const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
-    CurrentConfig.tokensETHTether.token1)
-  console.log(`tick after: ${poolInfo.tick}`);
-  console.log(`price after: ${priceAfterSwap}`);
-  console.log();
-  //const token0AmountA = await getERC20Balance(provider,walletAddress,token0.address)
-  //console.log(`after recover: ${token0AmountA}`);
-}
-
-async function swapInTetherTest(
-  range: number
-){
-  const swapTetherAmount = 800000
-  const eth = CurrentConfig.tokensETHTether.token0
-  const tether = CurrentConfig.tokensETHTether.token1
-  const usdc = CurrentConfig.tokensUSDCETH.token0
-
-  const provider = getForkingChainProvider()
-  const wallet = createForkingChainWallet()
-  const walletAddress = wallet.address
-
-  const ethAmount = await getERC20Balance(provider,walletAddress,eth.address)
-  console.log(`eth amount: ${ethAmount}`);
-  
-  //swap eth for usdc
-  const uncheckedTradeETHUSDC = await createTrade(5000, eth, usdc, FeeAmount.LOW, provider)
-  const res = await executeTrade(uncheckedTradeETHUSDC, eth, provider, wallet)
-      // need to handle tx fail
-  const usdcAmount = await getERC20Balance(provider, walletAddress, usdc.address)
-  const usdcAmountToSwapIn = usdcAmount*0.96
-  console.log(`usdc amount: ${usdcAmount}`);
-
-  //swap usdc for tether
-  const uncheckedTradeUSDCTether = await createTrade(+usdcAmountToSwapIn.toFixed(0)/Math.pow(10,usdc.decimals), usdc, tether, FeeAmount.LOW, provider)
-  const res2 = await executeTrade(uncheckedTradeUSDCTether, usdc, provider, wallet)
-      // need to handle tx fail
-  const tetherAmount = await getERC20Balance(provider, walletAddress, tether.address)
-  console.log(`tether amount: ${tetherAmount}`);
-
-  const poolInfoBefore = await getPoolInfo(eth,tether,FeeAmount.LOW,provider)
-  const tickBefore = poolInfoBefore.tick
-  const priceBefore = tickToPriceRealWorld(tickBefore, CurrentConfig.tokensETHTether.token0,
-    CurrentConfig.tokensETHTether.token1)
-  console.log(`tickBefore: ${tickBefore}`);
-  console.log(`Price Before: ${priceBefore}`);
-  const tickUpper = tickBefore + Math.log(1+range) / Math.log(1.0001)
-  const tickLower = tickBefore + Math.log(1-range) / Math.log(1.0001)
-  console.log(`tickUpper: ${tickUpper}`)
-  console.log(`tickLower: ${tickLower}`)
-  console.log();
-  let poolInfo = await getPoolInfo(eth,tether,FeeAmount.LOW,provider)
-  while(poolInfo.tick < tickUpper){
-    const uncheckedTrade = await createTrade(swapTetherAmount, tether, eth, FeeAmount.LOW, provider)
-    const swapOutput = await executeTrade(uncheckedTrade, tether, provider, wallet)
-    // need to handle tx fail
-    poolInfo = await await getPoolInfo(eth,tether,FeeAmount.LOW,provider)
-    const priceAfterSwap = tickToPriceRealWorld(poolInfo.tick, CurrentConfig.tokensETHTether.token0,
-      CurrentConfig.tokensETHTether.token1)
-    console.log(`tick after: ${poolInfo.tick}`);
-    console.log(`price after: ${priceAfterSwap}`);
-    console.log();
-  }
-}
 
 getAvgPrice()
 //tickCalculator(CurrentConfig.tokensETHTether.token0, CurrentConfig.tokensETHTether.token1,FeeAmount.LOW,0.05)

@@ -1,5 +1,7 @@
 import fetch from 'cross-fetch'
 
+// to query and calculate the LQ of diffrent pools
+// calculate which pool in more profitable
 async function queryTest(poolID: string){
     //revise timespan parameter to adust time span for average calculation, by defualt it's 30 days 
     let timeSpan = 7;
