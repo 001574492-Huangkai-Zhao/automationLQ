@@ -84,14 +84,15 @@ export async function constructRebalancingAsymmetry( amount0: number, decimal0:n
   if(swap0 > 0) {
     swap0for1=true
     //swapAmount = swap0*Math.pow(10, -decimal0)
+    //truncate amount to avoid 'fractional component exceeds decimals' error
     swapAmount = Math.trunc(swap0*Math.pow(10, -decimal0));
-    console.log(`going to swap in WETH amount: ${swapAmount}`);
+    console.log(`going to swap in ${poolInfo.token0.name} amount: ${swapAmount}`);
   } else {
     swap0for1=false
     //const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     const swap1= -(amount0 - amount1*constant)/(constant + (1-FeeAmount.LOW/100000)/poolPrice);
     swapAmount = Math.trunc(swap1*Math.pow(10, -decimal1))
-    console.log(`going to swap in TETHER amount: ${swapAmount}`);
+    console.log(`going to swap in ${poolInfo.token1.name} amount: ${swapAmount}`);
   }
  return{swap0for1, swapAmount}
 }
