@@ -3,8 +3,10 @@ import { CurrentConfig } from '../tokens.config'
 import {getForkingChainProvider  } from '../libs/providers'
 import {FeeAmount,} from '@uniswap/v3-sdk'
 import {tickToPriceRealWorld} from '../libs/positions'
-import { arrayToCsv } from '../status/writeCSV'
+import { arrayToCsv } from './writeCSV'
 
+// to query and calculate the LQ of ticks
+// write data to csv file, so we can drew the LQ distribution graph
 async function queryTickLQ(tickLeft:number, tickRight:number) {
     const provider= getForkingChainProvider()
     const token0 = CurrentConfig.tokensETHTether.token0

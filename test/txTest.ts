@@ -9,6 +9,7 @@ import { CurrentConfig } from '../tokens.config'
 import {createTrade,executeTrade} from '../libs/trading'
 import { getERC20Balance } from '../libs/balance'
 
+//primitive implement of test LQ, it's out of date
 async function swapInETHTest(token0: Token, token1: Token,poolFee: FeeAmount,range: number
 ){
     const swapEthAmount = 5000
@@ -47,7 +48,7 @@ async function swapInETHTest(token0: Token, token1: Token,poolFee: FeeAmount,ran
 
 
 
-async function sgetTXStatusTest(hash: string){
+async function getTXStatusTest(hash: string){
     const swapEthAmount = 500
     const provider = getForkingChainProvider()
     const wallet = createForkingChainWallet()
